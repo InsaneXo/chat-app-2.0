@@ -28,10 +28,10 @@ const Register = () => {
                     </div>
 
                     <form className="space-y-5">
-                        <CustomInputBox label="Name" iconName='mdi:user' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
-                        <CustomInputBox label="Email" iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
-                        <CustomInputBox label="Phone" iconName='mdi:cellphone' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
-                        <CustomInputBox label="Password" iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} />
+                        <CustomInputBox label="Name" type='text' iconName='mdi:user' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
+                        <CustomInputBox label="Email" type='email' iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
+                        <CustomInputBox label="Phone" type='text' iconName='mdi:cellphone' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
+                        <CustomInputBox label="Password" type='password' iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} />
                         <button className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
                             Register
                         </button>

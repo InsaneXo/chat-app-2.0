@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CustomInputBox from '../../components/UI/CustomInputBox';
 
 const Login = () => {
@@ -28,8 +28,8 @@ const Login = () => {
                     </div>
 
                     <form className="space-y-5">
-                        <CustomInputBox label="Email" iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369] cursor-pointer' />
-                        <CustomInputBox label="Password" iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} />
+                        <CustomInputBox label="Email" type='email' iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369] cursor-pointer' />
+                        <CustomInputBox label="Password" type='password' iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} />
                         <div className='flex items-center justify-between '>
                             <div className='flex gap-1'>
                                 <input type='checkbox' />

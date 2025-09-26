@@ -5,10 +5,11 @@ interface InputProps {
     label: string;
     iconName: string;
     iconClassName: string;
+    type:string;
     action?: boolean;
 }
 
-const CustomInputBox = ({ label, iconName, iconClassName, action = false }: InputProps) => {
+const CustomInputBox = ({ label, iconName, iconClassName, type, action = false }: InputProps) => {
     return (
         <div className='my-3 w-full h-12  mt-1 relative'>
             <input className='w-full h-full px-8 rounded-2xl 
@@ -18,7 +19,7 @@ const CustomInputBox = ({ label, iconName, iconClassName, action = false }: Inpu
           focus:ring-2 
           focus:ring-[#29D369] 
           focus:border-[#29D369] 
-          transition-all duration-200' type="text" placeholder={label} />
+          transition-all duration-200' type={type} placeholder={label} />
             <CustomIcon name={iconName} className={iconClassName} />
             {action && <CustomIcon name='mdi:eye' className="absolute right-2 top-1/2 -translate-y-1/2 text-[#29D369] cursor-pointer" />}
         </div>
