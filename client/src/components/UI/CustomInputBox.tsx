@@ -1,15 +1,8 @@
 import React from 'react'
 import CustomIcon from './CustomIcon';
+import type { CustomInputProps } from '../../types/component';
 
-interface InputProps {
-    label: string;
-    iconName: string;
-    iconClassName: string;
-    type:string;
-    action?: boolean;
-}
-
-const CustomInputBox = ({ label, iconName, iconClassName, type, action = false }: InputProps) => {
+const CustomInputBox = ({ label, iconName, iconClassName, type, action = false }: CustomInputProps) => {
     return (
         <div className='my-3 w-full h-12  mt-1 relative'>
             <input className='w-full h-full px-8 rounded-2xl 
