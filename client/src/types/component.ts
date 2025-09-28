@@ -10,3 +10,10 @@ export interface CustomInputProps {
     type:string;
     action?: boolean;
 }
+
+export interface MessageItemProps {
+ message: string;
+  time: string;
+  isSender?: boolean;
+  isRead?: boolean;
+}
