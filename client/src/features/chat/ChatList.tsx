@@ -27,6 +27,8 @@ const ChatList = () => {
             </div>
             <div className='flex-1 w-full overflow-auto'>
                 <ChatItem />
+                <ChatItem />
+                <ChatItem />
             </div>
         </div>
     )

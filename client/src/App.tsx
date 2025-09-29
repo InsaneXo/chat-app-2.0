@@ -1,17 +1,12 @@
-import ForgetPassword from "./features/auth/ForgetPassword"
-import Login from "./features/auth/Login"
-import Register from "./features/auth/Register"
-import Home from "./pages/Home"
+import Router from "./routes/Index"
+import { StoreProvider } from "./StoreProvider"
 
 function App() {
 
   return (
-    <>
-      {/* <Login /> */}
-      {/* <Register /> */}
-      {/* <ForgetPassword /> */}
-      <Home />
-    </>
+    <StoreProvider>
+      <Router />
+    </StoreProvider>
   )
 }
 

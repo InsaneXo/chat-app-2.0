@@ -1,12 +1,12 @@
-import express, {Request, Response} from "express"
+require('dotenv').config()
+require('./config/db')
 
+import express from "express"
+import cors from "cors"
 const app = express()
 const PORT = 3001
+app.use(cors())
 
-app.get('/', (req:Request, res:Response)=>{
-    res.status(200).json({message: "Server is running successful"})
-})
-
-app.listen(PORT, ()=>{
+app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`)
 })
