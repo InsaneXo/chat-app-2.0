@@ -13,4 +13,10 @@ const decryptPassword = async (plaintext: string, hashedPassword: string) => {
     return await bcrypt.compare(plaintext, hashedPassword)
 }
 
-export { hashingPassword, decryptPassword }
+const generateSixDigitCode = (): number => {
+    return Math.floor(100000 + Math.random() * 900000);
+}
+
+
+
+export { hashingPassword, decryptPassword, generateSixDigitCode }

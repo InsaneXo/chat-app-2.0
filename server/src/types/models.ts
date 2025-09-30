@@ -7,6 +7,7 @@ export interface IUser extends Document {
   phone?: string;
   isActive: boolean;
   avatarUrl?: string;
+  otp?:string;
   status?: string;
   lastSeen?: Date;
   isOnline: boolean;
