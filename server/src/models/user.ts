@@ -28,6 +28,7 @@ const UserSchema: Schema<IUser> = new Schema(
     otp: { type: String },
     lastSeen: { type: Date, default: Date.now },
     isOnline: { type: Boolean, default: false },
+    session: {type: String, }
   },
   { timestamps: true }
 );

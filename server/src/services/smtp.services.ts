@@ -4,8 +4,8 @@ import { MailOptionsTypes } from "../types/types";
 const transporter = nodemailer.createTransport({
     service: process.env.SMTP_SERVICE,
     auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
+        user: process.env.SMTP_GMAIL_USER,
+        pass: process.env.SMTP_GMAIL_PASS,
     },
 })
 
