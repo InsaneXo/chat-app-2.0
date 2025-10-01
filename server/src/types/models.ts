@@ -4,7 +4,6 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  phone?: string;
   isActive: boolean;
   avatarUrl?: string;
   otp?: string;
@@ -13,5 +12,8 @@ export interface IUser extends Document {
   isOnline: boolean;
   createdAt: Date;
   updatedAt: Date;
-  session: string;
+  sessions: {
+    forgetPassword: string;
+    loginUser: string;
+  };
 }

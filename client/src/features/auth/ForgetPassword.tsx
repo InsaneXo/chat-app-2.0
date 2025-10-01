@@ -1,7 +1,27 @@
 import React from 'react';
 import CustomInputBox from '../../components/UI/CustomInputBox';
+import { useForm } from 'react-hook-form';
+import type { InputTypes } from '../../types/component';
+import axios from 'axios';
 
 const ForgetPassword = () => {
+  const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
+
+  const handleForgetPassword = async (formData:InputTypes)=>{
+    try {
+      const {data} = await axios({
+        url: '/api/auth/forget-password',
+        method:"POST",
+        data: {
+          email: formData.email
+        }
+      })
+
+      console.log(data)
+    } catch (error) {
+      
+    }
+  }
   return (
     <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
       <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">
@@ -27,8 +47,16 @@ const ForgetPassword = () => {
             {/* <p className="text-gray-500 mt-2">Login to continue chatting</p> */}
           </div>
 
-          <form className="space-y-5">
-            <CustomInputBox label="Email" type='email' iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
+          <form className="space-y-5" onClick={handleSubmit(handleForgetPassword)}>
+            <CustomInputBox label="Email" iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' register={register("email", {
+              required: "Email are requried*", pattern: {
+                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/,
+                message: "Invalid email address"
+              },
+            })} />
+            {errors.email && (
+                            <p className="text-red-500 text-sm ">{errors.email.message}</p>
+                        )}
             <button className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
               SEND OTP
             </button>

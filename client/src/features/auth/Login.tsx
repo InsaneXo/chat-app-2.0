@@ -1,7 +1,31 @@
-import React, { useState } from 'react';
+
 import CustomInputBox from '../../components/UI/CustomInputBox';
+import { useForm } from "react-hook-form";
+import type { InputTypes } from '../../types/component';
+import axios from 'axios';
+import { useStore } from '../../StoreProvider';
 
 const Login = () => {
+    const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
+    const { setStore } = useStore()
+
+    const loginHandler = async (formData: InputTypes) => {
+        try {
+            const { data } = await axios({
+                url: "/api/auth/login",
+                method: "POST",
+                data: {
+                    email: formData.email,
+                    password: formData.password
+                }
+            })
+
+            setStore({ isAuthenticate: true, userId: data.userId })
+            localStorage.setItem("token", data.token)
+        } catch (error) {
+
+        }
+    }
     return (
         <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
             <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">
@@ -27,9 +51,20 @@ const Login = () => {
                         <p className="text-gray-500 mt-2">Login to continue chatting</p>
                     </div>
 
-                    <form className="space-y-5">
-                        <CustomInputBox label="Email" type='email' iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369] cursor-pointer' />
-                        <CustomInputBox label="Password" type='password' iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} />
+                    <form className="space-y-5" onSubmit={handleSubmit(loginHandler)}>
+                        <CustomInputBox label="Email" iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369] cursor-pointer' register={register("email", {
+                            required: "Email is requried*", pattern: {
+                                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/,
+                                message: "Invalid email address"
+                            },
+                        })} />
+                        {errors.email && (
+                            <p className="text-red-500 text-sm ">{errors.email.message}</p>
+                        )}
+                        <CustomInputBox label="Password" iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} register={register("password", { required: "Password is Requried*", })} />
+                        {errors.password && (
+                            <p className="text-red-500 text-sm ">{errors.password.message}</p>
+                        )}
                         <div className='flex items-center justify-between '>
                             <div className='flex gap-1'>
                                 <input type='checkbox' />
@@ -37,7 +72,7 @@ const Login = () => {
                             </div>
                             <div className="text-[#29D369] font-semibold cursor-pointer hover:underline">Forget Password?</div>
                         </div>
-                        <button className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
+                        <button type='submit' className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
                             Login
                         </button>
                     </form>

@@ -14,11 +14,6 @@ const UserSchema: Schema<IUser> = new Schema(
     },
     password: { type: String, required: true, minlength: 8, select: false },
     isActive: { type: Boolean, default: false },
-    phone: {
-      type: String,
-      trim: true,
-      match: [/^\+?[1-9]\d{7,14}$/, "Please provide a valid phone number"],
-    },
     avatarUrl: { type: String, trim: true },
     status: {
       type: String,
@@ -28,9 +23,13 @@ const UserSchema: Schema<IUser> = new Schema(
     otp: { type: String },
     lastSeen: { type: Date, default: Date.now },
     isOnline: { type: Boolean, default: false },
-    session: {type: String, }
+    sessions: {
+      forgetPassword: { type: String },
+      loginUser: { type: String }
+    }
   },
   { timestamps: true }
 );
+
 
 export default mongoose.model<IUser>("UserModel", UserSchema);

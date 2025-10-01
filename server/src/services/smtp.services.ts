@@ -22,8 +22,7 @@ const transporter = nodemailer.createTransport({
         await transporter.sendMail(mailOptions);
         console.log("✅ Email sent successfully");
     } catch (error) {
-        console.error("❌ Email send error:", error);
-        throw error;
+        return { success: false, error };
     }
 };
 

@@ -1,7 +1,29 @@
 import React from 'react';
 import CustomInputBox from '../../components/UI/CustomInputBox';
+import type { InputTypes } from '../../types/component';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
 
 const Register = () => {
+    const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
+
+    const handleRegister = async (formData: InputTypes) => {
+        try {
+            const { data } = await axios({
+                url: "/api/auth/register",
+                method: "POST",
+                data: {
+                    email: formData.email,
+                    name: formData.name,
+                    password: formData.password
+                }
+            })
+
+            console.log(data)
+        } catch (error) {
+
+        }
+    }
     return (
         <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
             <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">
@@ -27,11 +49,28 @@ const Register = () => {
                         <p className="text-gray-500 mt-2">Register to continue chatting</p>
                     </div>
 
-                    <form className="space-y-5">
-                        <CustomInputBox label="Name" type='text' iconName='mdi:user' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
-                        <CustomInputBox label="Email" type='email' iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
-                        <CustomInputBox label="Phone" type='text' iconName='mdi:cellphone' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' />
-                        <CustomInputBox label="Password" type='password' iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} />
+                    <form className="space-y-5" onSubmit={handleSubmit(handleRegister)}>
+                        <CustomInputBox label="Email" iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' register={register("email", {
+                            required: "Email is requried*", pattern: {
+                                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/,
+                                message: "Invalid email address"
+                            }
+                        })} />
+                        {errors.email && (
+                            <p className="text-red-500 text-sm ">{errors.email.message}</p>
+                        )}
+                        <CustomInputBox label="Name" iconName='mdi:user' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' register={register("name", {
+                            required: "Name is Requried*"
+                        })} />
+                        {errors.name && (
+                            <p className="text-red-500 text-sm ">{errors.name.message}</p>
+                        )}
+                        <CustomInputBox label="Password" iconName='mdi:password-outline' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' action={true} register={register("password", {
+                            required: "Password is Requried*",
+                        })} />
+                        {errors.password && (
+                            <p className="text-red-500 text-sm ">{errors.password.message}</p>
+                        )}
                         <button className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
                             Register
                         </button>

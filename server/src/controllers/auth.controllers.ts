@@ -1,17 +1,18 @@
 import { Request, Response } from "express";
 import user from "../models/user";
-import { decryptPassword, generateRandomString, generateSixDigitCode, hashingPassword, JWTTokenGenreted } from "../utils/helper";
+import { decodedJWTToken, decryptPassword, generateRandomString, generateSixDigitCode, hashingPassword, JWTTokenGenreted } from "../utils/helper";
 import sendMail from "../services/smtp.services";
 
 const register = async (req: Request, res: Response) => {
     try {
-        const { name, email, password, phone } = req.body
+        const { name, email, password } = req.body
 
-        if (!name || !email || !password || !phone) {
+        if (!name || !email || !password) {
             return res.status(400).json({ message: "All Fields are required" })
         }
 
         const userExist = await user.exists({ email, isActive: true })
+
 
         if (userExist) {
             return res.status(400).json({ message: "User already exist. Try with different email account." })
@@ -23,10 +24,15 @@ const register = async (req: Request, res: Response) => {
         const userInfo = await user.findOneAndUpdate({ email }, {
             name,
             email,
-            phone,
             password: hashedPassword,
             otp: generateOTP
         }, { new: true, upsert: true })
+
+        const generateSessionString = generateRandomString(22)
+
+        await user.updateOne({ email }, { $set: { sessions: { "loginUser": generateSessionString } } })
+
+        const generateToken = JWTTokenGenreted(generateSessionString, "5m")
 
         sendMail({
             subject: "Confirm your account",
@@ -34,7 +40,7 @@ const register = async (req: Request, res: Response) => {
             text: `Your OTP is ${generateOTP}`,
         })
 
-        return res.status(200).json({ message: `OTP Sent Successfully on ${email}` })
+        return res.status(200).json({ message: `OTP Sent Successfully on ${email}`, token: generateToken })
     } catch (error) {
         console.log("Register Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })
@@ -43,43 +49,49 @@ const register = async (req: Request, res: Response) => {
 
 const verifyOTP = async (req: Request, res: Response) => {
     try {
-        const { email, otp } = req.body
+        const { token, otp } = req.body;
 
-        if (!email || !otp) {
-            return res.status(400).json({ message: "All Fields are required" })
+        if (!token || !otp) {
+            return res.status(400).json({ message: "All fields are required" });
         }
 
-        const isExistUser = await user.exists({ email, isActive: true })
-
-        if (isExistUser) {
-            return res.status(400).json({ message: "User already exist. Try with different email account." })
+        const decodedToken = decodedJWTToken(token);
+        if (!decodedToken) {
+            return res.status(401).json({ message: "Invalid Token" });
         }
 
-        const findUser = await user.findOne({ email })
+        const isExistUser = await user.findOne({ "sessions.loginUser": decodedToken.sessionId, isActive: false });
 
-        if (!findUser) {
-            return res.status(404).json({ message: "User not found. Please register first." })
+        if (!isExistUser) {
+            return res.status(404).json({ message: "User not found. Please register first." });
         }
 
-        if (findUser?.otp !== otp) {
-            return res.status(401).json({ message: "Invalid OTP. Please try again." })
+        if (isExistUser.otp !== otp) {
+            return res.status(401).json({ message: "Invalid OTP. Please try again." });
         }
 
-        await user.findOneAndUpdate({ email }, {
-            $set: {
-                isActive: true
-            },
-            $unset: {
-                otp: 1
+        await user.findOneAndUpdate(
+            { _id: isExistUser._id },
+            {
+                $set: { isActive: true },
+                $unset: {
+                    otp: 1,
+                    sessions: {
+                        loginUser: 1,
+                        forgetpassword: 1
+                    }
+                }
             }
-        })
+        );
 
-        return res.status(200).json({ message: "User created successfully" })
+        return res.status(200).json({ message: "Create User Successfully" });
+
     } catch (error) {
-        console.log("Verify OTP Contoller : ", error)
-        return res.status(500).json({ message: "Something went wrong" })
+        console.error("Verify OTP Controller: ", error);
+        return res.status(500).json({ message: "Something went wrong" });
     }
-}
+};
+
 
 const login = async (req: Request, res: Response) => {
     try {
@@ -90,13 +102,14 @@ const login = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All Fields are required" })
         }
 
-        const isUserExist = await user.findOne({ email }).select("+password")
+        const isUserExist = await user.findOne({ email, isActive: true }).select("+password")
 
         if (!isUserExist) {
             return res.status(404).json({ message: 'User not found. Please register first.' })
         }
 
-        const isMatched = decryptPassword(password, isUserExist.password)
+        const isMatched = await decryptPassword(password, isUserExist.password)
+
 
         if (!isMatched) {
             return res.status(401).json({ message: "Invaild Credentials. Please Try Again." })
@@ -104,11 +117,11 @@ const login = async (req: Request, res: Response) => {
 
         const generateSessionString = generateRandomString(22)
 
-        await user.updateOne({ email: isUserExist.email }, { $set: { session: generateSessionString } })
+        await user.updateOne({ email: isUserExist.email }, { $set: { sessions: { "loginUser": generateSessionString } } })
 
         const generateToken = JWTTokenGenreted(generateSessionString)
 
-        return res.status(200).json({ authToken: generateToken })
+        return res.status(200).json({ token: generateToken, userId: isUserExist._id })
     } catch (error) {
         console.log("Login Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })
@@ -130,13 +143,18 @@ const forgetpassword = async (req: Request, res: Response) => {
         }
 
         const generateOTP = generateSixDigitCode()
+        const generateSessionString = generateRandomString(22)
+        const generateToken = JWTTokenGenreted(generateSessionString, "5m")
+
+        await user.updateOne({ email }, { $set: { sessions: { "forgetPassword": generateSessionString }, otp:generateOTP } })
+
         sendMail({
             subject: "Forget your password",
             to: email,
             text: `Your OTP is ${generateOTP}`,
         })
 
-        return res.status(200).json({ message: `OTP Sent Successfully on ${email}` })
+        return res.status(200).json({ message: `OTP Sent Successfully on ${email}`, token: generateToken })
 
     } catch (error) {
         console.log("Forgetpassword Controller : ", error)
@@ -144,11 +162,71 @@ const forgetpassword = async (req: Request, res: Response) => {
     }
 }
 
+
+const verifyForgetPasswordOTP = async (req: Request, res: Response) => {
+    try {
+        const { token, otp } = req.body;
+
+        if (!token || !otp) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const decodedToken = decodedJWTToken(token);
+        if (!decodedToken) {
+            return res.status(401).json({ message: "Invalid Token" });
+        }
+
+        const isExistUser = await user.findOne({ "sessions.forgetPassword": decodedToken.sessionId, isActive: true });
+
+        if (!isExistUser) {
+            return res.status(404).json({ message: "User not found. Please register first." });
+        }
+
+        if (isExistUser.otp !== otp) {
+            return res.status(401).json({ message: "Invalid OTP. Please try again." });
+        }
+
+        return res.status(200).json({ message: "OTP Verified" });
+
+    } catch (error) {
+        console.error("Verify OTP Controller: ", error);
+        return res.status(500).json({ message: "Something went wrong" });
+    }
+};
+
 const newPassword = async (req: Request, res: Response) => {
     try {
-        const { newPassword } = req.body
+        const { newPassword, token } = req.body
 
-        
+        if (!newPassword || !token) {
+            return res.status(400).json({ message: "Field are requried" })
+        }
+
+        const decodedToken = decodedJWTToken(token);
+
+        if (!decodedToken) {
+            return res.status(401).json({ message: "Invalid Token" });
+        }
+
+        const isExistUser = await user.exists({ "sessions.forgetPassword": decodedToken.sessionId });
+
+        const hashedPassword = await hashingPassword(newPassword)
+
+        await user.findOneAndUpdate({ _id: isExistUser?._id }, {
+            $set: {
+                password: hashedPassword
+            },
+            $unset: {
+                otp: 1,
+                sessions: {
+                    loginUser: 1,
+                    forgetpassword: 1
+                }
+            }
+        })
+
+        return res.status(200).json({ message: "Password updated successfully." })
+
     } catch (error) {
         console.log("New Password Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })
@@ -156,4 +234,4 @@ const newPassword = async (req: Request, res: Response) => {
 }
 
 
-export { register, verifyOTP, login, newPassword, forgetpassword }
+export { register, verifyOTP, verifyForgetPasswordOTP, login, newPassword, forgetpassword }

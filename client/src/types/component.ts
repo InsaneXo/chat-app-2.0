@@ -7,7 +7,7 @@ export interface CustomInputProps {
     label: string;
     iconName: string;
     iconClassName: string;
-    type: string;
+    register: any
     action?: boolean;
 }
 
@@ -27,4 +27,10 @@ export interface ContextMenuDataProps {
     icon: string;
     contextOption: string;
     handler: () => void
+}
+
+export interface InputTypes {
+    email?: string;
+    password?:string;
+    name?:string;
 }
