@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
  const sendMail = async ({ subject, to, text, html, attachments }: MailOptionsTypes) => {
     try {
         const mailOptions = {
-            from: process.env.SMTP_EMAIL,
+            from: process.env.SMTP_GMAIL_USER,
             to,
             subject,
             text,

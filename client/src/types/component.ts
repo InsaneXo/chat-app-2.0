@@ -34,3 +34,9 @@ export interface InputTypes {
     password?:string;
     name?:string;
 }
+
+export interface OTPInputProps {
+    length?: number;
+    value?: string;
+    onChange?: (val: string) => void;
+};

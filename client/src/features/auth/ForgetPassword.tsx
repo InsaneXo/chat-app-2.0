@@ -3,6 +3,7 @@ import CustomInputBox from '../../components/UI/CustomInputBox';
 import { useForm } from 'react-hook-form';
 import type { InputTypes } from '../../types/component';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const ForgetPassword = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
@@ -63,10 +64,10 @@ const ForgetPassword = () => {
           </form>
 
           <div className="mt-6 text-center text-gray-500">
-            Have an account?{' '}
-            <span className="text-[#29D369] font-semibold cursor-pointer hover:underline">
+            Don't Have an account?{' '}
+            <Link to={"/register"} className="text-[#29D369] font-semibold cursor-pointer hover:underline">
               Sign Up
-            </span>
+            </Link>
           </div>
         </div>
       </div>

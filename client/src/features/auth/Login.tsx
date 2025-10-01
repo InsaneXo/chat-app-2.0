@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import type { InputTypes } from '../../types/component';
 import axios from 'axios';
 import { useStore } from '../../StoreProvider';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
@@ -70,7 +71,7 @@ const Login = () => {
                                 <input type='checkbox' />
                                 <div className='text-gray-500'>Remember Me</div>
                             </div>
-                            <div className="text-[#29D369] font-semibold cursor-pointer hover:underline">Forget Password?</div>
+                            <Link to={'/forget-password'} className="text-[#29D369] font-semibold cursor-pointer hover:underline">Forget Password?</Link>
                         </div>
                         <button type='submit' className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
                             Login
@@ -79,9 +80,9 @@ const Login = () => {
 
                     <div className="mt-6 text-center text-gray-500">
                         Don't have an account?{' '}
-                        <span className="text-[#29D369] font-semibold cursor-pointer hover:underline">
+                        <Link to={"/register"} className="text-[#29D369] font-semibold cursor-pointer hover:underline">
                             Sign Up
-                        </span>
+                        </Link>
                     </div>
                 </div>
             </div>
