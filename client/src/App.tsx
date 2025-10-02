@@ -1,11 +1,14 @@
 import Router from "./routes/Index"
-import { StoreProvider } from "./StoreProvider"
+import { StoreProvider } from "./context/StoreProvider"
+import { ToastMessageProvider } from "./context/ToastMessageProvider"
 
 function App() {
 
   return (
     <StoreProvider>
-      <Router />
+      <ToastMessageProvider>
+        <Router />
+      </ToastMessageProvider>
     </StoreProvider>
   )
 }

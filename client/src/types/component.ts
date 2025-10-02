@@ -33,6 +33,7 @@ export interface InputTypes {
     email?: string;
     password?:string;
     name?:string;
+    otp?:string;
 }
 
 export interface OTPInputProps {
@@ -40,3 +41,8 @@ export interface OTPInputProps {
     value?: string;
     onChange?: (val: string) => void;
 };
+
+export interface CustomToastMessageProps {
+    name: string;
+    message: string;
+}

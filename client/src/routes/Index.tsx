@@ -2,7 +2,7 @@ import { Suspense, useContext } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import AuthRouter from './Auth.router'
 import ProtectiveRouter from './Protective.router'
-import { useStore } from '../StoreProvider'
+import { useStore } from '../context/StoreProvider'
 
 const Router = () => {
     const {store, setStore} = useStore()

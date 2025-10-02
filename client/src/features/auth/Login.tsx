@@ -3,12 +3,15 @@ import CustomInputBox from '../../components/UI/CustomInputBox';
 import { useForm } from "react-hook-form";
 import type { InputTypes } from '../../types/component';
 import axios from 'axios';
-import { useStore } from '../../StoreProvider';
+import { useStore } from '../../context/StoreProvider';
 import { Link } from 'react-router-dom';
+import { useToast } from '../../context/ToastMessageProvider';
+import { useEffect } from 'react';
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
     const { setStore } = useStore()
+    const {setMessage} = useToast()
 
     const loginHandler = async (formData: InputTypes) => {
         try {
@@ -27,6 +30,10 @@ const Login = () => {
 
         }
     }
+
+    useEffect(()=>{
+        setMessage("Hello World")
+    },[])
     return (
         <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
             <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">

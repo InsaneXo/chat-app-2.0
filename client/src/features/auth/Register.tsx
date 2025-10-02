@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import CustomInputBox from '../../components/UI/CustomInputBox';
 import type { InputTypes } from '../../types/component';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import OTPInput from '../../components/UI/OTPInput';
@@ -74,7 +74,14 @@ const Register = () => {
                             {errors.password && (
                                 <p className="text-red-500 text-sm ">{errors.password.message}</p>
                             )}
-                        </> : <OTPInput />}
+                        </> : <Controller
+                            control={control}
+                            name="otp"
+                            rules={{ required: "OTP is required", minLength: { value: 6, message: "OTP must be 6 digits" } }}
+                            render={({ field: { value, onChange } }) => (
+                                <OTPInput length={6} value={value} onChange={onChange} />
+                            )}
+                        />}
                         <button className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300 cursor-pointer">
                             {formType === "register" ? "Register" : "Verify OTP"}
                         </button>
