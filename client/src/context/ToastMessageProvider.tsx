@@ -1,10 +1,14 @@
 import { createContext, useContext, useState, type ReactNode, } from "react";
 import CustomToastMessage from "../components/UI/CustomToastMessage";
+import type { ToastType } from "../types/component";
 
-type ToastContextType = {
-  message: string | null;
-  setMessage: React.Dispatch<React.SetStateAction<string | null>>;
-};
+
+
+interface ToastContextType {
+  toast: ToastType,
+  setToast: React.Dispatch<React.SetStateAction<ToastType>>
+}
+
 
 const ToastMessageContext = createContext<ToastContextType | undefined>(
   undefined
@@ -23,12 +27,15 @@ type ToastMessageProviderProps = {
 };
 
 export const ToastMessageProvider = ({ children }: ToastMessageProviderProps) => {
-  const [message, setMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastType>({
+    status: '',
+    message: ''
+  });
 
   return (
-    <ToastMessageContext.Provider value={{ message, setMessage }}>
+    <ToastMessageContext.Provider value={{ toast, setToast }}>
       {children}
-      <CustomToastMessage name="mdi:check-circle" message={message ?? ""} />
+      <CustomToastMessage data={toast} />
     </ToastMessageContext.Provider>
   );
 };

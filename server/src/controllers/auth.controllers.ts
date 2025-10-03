@@ -121,7 +121,7 @@ const login = async (req: Request, res: Response) => {
 
         const generateToken = JWTTokenGenreted(generateSessionString)
 
-        return res.status(200).json({ token: generateToken, userId: isUserExist._id })
+        return res.status(200).json({ token: generateToken, userId: isUserExist._id, message: "User Logged In" })
     } catch (error) {
         console.log("Login Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })

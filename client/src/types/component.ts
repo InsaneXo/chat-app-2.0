@@ -1,6 +1,7 @@
 export interface CustomIconProps {
     name: string;
     className?: string
+    onClick? : () =>void
 }
 
 export interface CustomInputProps {
@@ -32,6 +33,8 @@ export interface ContextMenuDataProps {
 export interface InputTypes {
     email?: string;
     password?:string;
+    newPassword?:string;
+    confirmPassword?: string;
     name?:string;
     otp?:string;
 }
@@ -42,7 +45,12 @@ export interface OTPInputProps {
     onChange?: (val: string) => void;
 };
 
+export interface ToastType {
+  status: string;
+  message: string;
+}
+
+
 export interface CustomToastMessageProps {
-    name: string;
-    message: string;
+    data:ToastType
 }

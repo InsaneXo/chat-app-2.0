@@ -6,15 +6,17 @@ import axios from 'axios';
 import { useStore } from '../../context/StoreProvider';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastMessageProvider';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
+    const [loading, setLoading] = useState<boolean>(false)
     const { setStore } = useStore()
-    const {setMessage} = useToast()
+    const { setToast } = useToast()
 
     const loginHandler = async (formData: InputTypes) => {
         try {
+            setLoading(true)
             const { data } = await axios({
                 url: "/api/auth/login",
                 method: "POST",
@@ -23,17 +25,22 @@ const Login = () => {
                     password: formData.password
                 }
             })
-
+            setToast({ status: "Success", message: data.message})
             setStore({ isAuthenticate: true, userId: data.userId })
             localStorage.setItem("token", data.token)
-        } catch (error) {
-
+        } catch (error:any) {
+            if(error){
+                setToast({ status: "Error", message: error.response.data.message})
+            }
+        }
+        finally{
+            setLoading(false)
         }
     }
 
-    useEffect(()=>{
-        setMessage("Hello World")
-    },[])
+    useEffect(() => {
+
+    }, [])
     return (
         <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
             <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">
@@ -80,12 +87,12 @@ const Login = () => {
                             </div>
                             <Link to={'/forget-password'} className="text-[#29D369] font-semibold cursor-pointer hover:underline">Forget Password?</Link>
                         </div>
-                        <button type='submit' className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300">
+                        <button disabled={loading} type='submit' className={`w-full h-12  ${loading ? "bg-green-300": "bg-[#29D369]"}  rounded-2xl text-white text-lg font-semibold  transition-all duration-300 ${loading ? "cursor-not-allowed": "cursor-pointer hover:bg-green-500"} `}>
                             Login
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center text-gray-500">
+                    <div className="mt-6 text-center text-gray-500 ">
                         Don't have an account?{' '}
                         <Link to={"/register"} className="text-[#29D369] font-semibold cursor-pointer hover:underline">
                             Sign Up

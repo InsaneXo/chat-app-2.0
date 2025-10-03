@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import CustomInputBox from '../../components/UI/CustomInputBox';
 import type { InputTypes } from '../../types/component';
 import { Controller, useForm } from 'react-hook-form';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import OTPInput from '../../components/UI/OTPInput';
+import { useToast } from '../../context/ToastMessageProvider';
 
 const Register = () => {
     const { register, handleSubmit, control, formState: { errors } } = useForm<InputTypes>();
-    const [formType, setFormType] = useState<string>("verifyotp")
+    const { setToast } = useToast()
+    const [formType, setFormType] = useState<string>("register")
+    const [token, setToken] = useState<string>("")
+    const navigate = useNavigate()
 
     const handleRegister = async (formData: InputTypes) => {
         try {
@@ -21,11 +25,31 @@ const Register = () => {
                     password: formData.password
                 }
             })
+            setToast({ status: "Success", message: data.message })
+            setToken(data.token)
             setFormType("verifyotp")
-        } catch (error) {
-
+        } catch (error: any) {
+            setToast({ status: "Error", message: "Something went wrong" })
         }
     }
+
+    const handleVerifyOTP = async (formData: InputTypes) => {
+        try {
+            const { data } = await axios({
+                url: "/api/auth/verify-otp",
+                method: "POST",
+                data: {
+                    token,
+                    otp: formData.otp
+                }
+            })
+            setToast({ status: "Success", message: data.message })
+            navigate('/')
+        } catch (error) {
+            setToast({ status: "Error", message: "Something went wrong" })
+        }
+    }
+
     return (
         <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
             <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">
@@ -51,7 +75,7 @@ const Register = () => {
                         <p className="text-gray-500 mt-2">{formType === "register" ? "Register to continue chatting" : "Enter your OTP to continue"}</p>
                     </div>
 
-                    <form className="space-y-5" onSubmit={handleSubmit(handleRegister)}>
+                    <form className="space-y-5" onSubmit={handleSubmit(formType === "register" ? handleRegister : handleVerifyOTP)}>
                         {formType === "register" ? <>
                             <CustomInputBox label="Email" iconName='mdi:email-variant' iconClassName='absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369]' register={register("email", {
                                 required: "Email is requried*", pattern: {
