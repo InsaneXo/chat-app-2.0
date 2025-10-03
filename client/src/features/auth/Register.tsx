@@ -10,12 +10,15 @@ import { useToast } from '../../context/ToastMessageProvider';
 const Register = () => {
     const { register, handleSubmit, control, formState: { errors } } = useForm<InputTypes>();
     const { setToast } = useToast()
+    const [loading, setLoading] = useState<boolean>(false)
+
     const [formType, setFormType] = useState<string>("register")
     const [token, setToken] = useState<string>("")
     const navigate = useNavigate()
 
     const handleRegister = async (formData: InputTypes) => {
         try {
+            setLoading(true)
             const { data } = await axios({
                 url: "/api/auth/register",
                 method: "POST",
@@ -30,11 +33,14 @@ const Register = () => {
             setFormType("verifyotp")
         } catch (error: any) {
             setToast({ status: "Error", message: "Something went wrong" })
+        } finally {
+            setLoading(false)
         }
     }
 
     const handleVerifyOTP = async (formData: InputTypes) => {
         try {
+            setLoading(true)
             const { data } = await axios({
                 url: "/api/auth/verify-otp",
                 method: "POST",
@@ -47,6 +53,8 @@ const Register = () => {
             navigate('/')
         } catch (error) {
             setToast({ status: "Error", message: "Something went wrong" })
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -106,7 +114,7 @@ const Register = () => {
                                 <OTPInput length={6} value={value} onChange={onChange} />
                             )}
                         />}
-                        <button className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300 cursor-pointer">
+                        <button disabled={loading} type='submit' className={`w-full h-12  ${loading ? "bg-green-300" : "bg-[#29D369]"}  rounded-2xl text-white text-lg font-semibold  transition-all duration-300 ${loading ? "cursor-not-allowed" : "cursor-pointer hover:bg-green-500"} `}>
                             {formType === "register" ? "Register" : "Verify OTP"}
                         </button>
                     </form>

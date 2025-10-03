@@ -233,5 +233,13 @@ const newPassword = async (req: Request, res: Response) => {
     }
 }
 
+const getWork = async (req:Request, res:Response)=>{
+    try {
+        return res.status(200).json("Working")
+    } catch (error) {
+        
+    }
+}
 
-export { register, verifyOTP, verifyForgetPasswordOTP, login, newPassword, forgetpassword }
+
+export { register, verifyOTP, verifyForgetPasswordOTP, login, newPassword, forgetpassword, getWork }

@@ -16,6 +16,8 @@ interface FormTypes {
 
 const ForgetPassword = () => {
   const { register, handleSubmit, control, formState: { errors } } = useForm<InputTypes>();
+    const [loading, setLoading] = useState<boolean>(false)
+
   const [form, setForm] = useState<FormTypes>({
     formType: "forgetPass",
     btnName: "Send OTP"
@@ -39,6 +41,7 @@ const ForgetPassword = () => {
 
   const handleForgetPassword = async (formData: InputTypes) => {
     try {
+      setLoading(true)
       console.log("formData : ", formData)
       const { data } = await axios({
         url: '/api/auth/forget-password',
@@ -54,11 +57,14 @@ const ForgetPassword = () => {
       if (error) {
         setToast({ status: "Error", message: error.response.data.message })
       }
+    } finally{
+      setLoading(false)
     }
   }
 
   const verifyOtpHandler = async (formData: InputTypes) => {
     try {
+      setLoading(true)
       const { data } = await axios({
         url: "/api/auth/verify-forget-password",
         method: "POST",
@@ -73,11 +79,14 @@ const ForgetPassword = () => {
       if (error) {
         setToast({ status: "Error", message: error.response.data.message })
       }
+    }finally{
+      setLoading(false)
     }
   }
 
   const newPasswordHandler = async (formData: InputTypes) => {
     try {
+      setLoading(true)
       if (formData.newPassword !== formData.confirmPassword) {
         return setToast({ status: "Error", message: "New Password and Confirm Password is not match" })
       }
@@ -96,6 +105,8 @@ const ForgetPassword = () => {
       if (error) {
         setToast({ status: "Error", message: error.response.data.message })
       }
+    } finally{
+      setLoading(false)
     }
   }
   return (
@@ -161,7 +172,7 @@ const ForgetPassword = () => {
               )}
             </>}
 
-            <button type='submit' className="w-full h-12 bg-[#29D369] rounded-2xl text-white text-lg font-semibold hover:bg-green-500 transition-all duration-300 cursor-pointer">
+            <button disabled={loading} type='submit' className={`w-full h-12  ${loading ? "bg-green-300": "bg-[#29D369]"}  rounded-2xl text-white text-lg font-semibold  transition-all duration-300 ${loading ? "cursor-not-allowed": "cursor-pointer hover:bg-green-500"} `}>
               {form.btnName}
             </button>
           </form>
