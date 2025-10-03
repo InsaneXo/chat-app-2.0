@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import CustomInputBox from '../../components/UI/CustomInputBox';
 import { Controller, useForm } from 'react-hook-form';
 import type { InputTypes } from '../../types/component';
