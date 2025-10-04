@@ -10,8 +10,9 @@ import { useToast } from '../../context/ToastMessageProvider';
 
 
 interface FormTypes {
-  formType: string,
-  btnName: string
+  formType: string;
+  btnName: string;
+  heading:string;
 }
 
 const ForgetPassword = () => {
@@ -20,7 +21,8 @@ const ForgetPassword = () => {
 
   const [form, setForm] = useState<FormTypes>({
     formType: "forgetPass",
-    btnName: "Send OTP"
+    btnName: "Send OTP",
+    heading:"Reset your password to continue"
   })
   const [token, setToken] = useState<string>("")
   const navigate = useNavigate()
@@ -50,7 +52,7 @@ const ForgetPassword = () => {
           email: formData.email
         }
       })
-      setForm({ formType: "otp", btnName: "Verify OTP" })
+      setForm({ formType: "otp", btnName: "Verify OTP", heading:"Enter the OTP sent to your email" })
       setToken(data.token)
       setToast({ status: "Success", message: data.message })
     } catch (error: any) {
@@ -73,7 +75,7 @@ const ForgetPassword = () => {
           otp: formData.otp
         }
       })
-       setForm({ formType: "newPassword", btnName: "Save Password" })
+       setForm({ formType: "newPassword", btnName: "Save Password", heading: "Set your new password" })
       setToast({ status: "Success", message: data.message })
     } catch (error: any) {
       if (error) {
@@ -129,7 +131,7 @@ const ForgetPassword = () => {
               alt="Hero_Image"
             />
             <h2 className="text-3xl font-bold text-gray-800">Reset your password!</h2>
-            <p className="text-gray-500 mt-2">Forget your Password</p>
+            <p className="text-gray-500 mt-2">{form.heading}</p>
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit(handleSubmitForm)}>
