@@ -1,22 +1,47 @@
 import { NextFunction, Request, Response } from "express";
+import { decodedJWTToken } from "../utils/helper";
+import user from "../models/user";
+import { JwtPayload } from "jsonwebtoken";
 
-const auth = (req: Request, res: Response, next: NextFunction) => {
-    
-    try {
-        // Check for token in headers
-        const authHeader = req.headers["token"];
+// Extend Express Request to include custom properties
+declare module "express-serve-static-core" {
+  interface Request {
+    email?: string;
+    userId?: string;
+  }
+}
 
-        if (!authHeader) {
-            return res.status(401).json({ message: "No token provided" });
-        }
+const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const authHeader = req.headers["token"] as string | undefined;
 
-        console.log("Token received:", authHeader);
-
-        // Later you can verify the token with jwt.verify(authHeader, secret)
-        next();
-    } catch (error) {
-        return res.status(500).json({ message: "Something went wrong" });
+    if (!authHeader) {
+      res.status(401).json({ message: "Unauthorized access. Token missing." });
+      return;
     }
+
+    const decodedToken = decodedJWTToken(authHeader) as JwtPayload | null;
+
+    if (!decodedToken) {
+      res.status(401).json({ message: "Session expired. Please log in again." });
+      return;
+    }
+
+    const userFind = await user.findOne({ "sessions.loginUser": decodedToken.sessionId });
+
+    if (!userFind) {
+      res.status(401).json({ message: "Invalid or expired session. Please log in again." });
+      return;
+    }
+
+    req.email = userFind.email;
+    req.userId = userFind._id.toString();
+
+    next();
+  } catch (error) {
+    console.error("Auth Middleware Error:", error);
+    res.status(500).json({ message: "Something went wrong." });
+  }
 };
 
-export default auth;
+export default authMiddleware;

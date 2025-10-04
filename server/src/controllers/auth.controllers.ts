@@ -146,7 +146,7 @@ const forgetpassword = async (req: Request, res: Response) => {
         const generateSessionString = generateRandomString(22)
         const generateToken = JWTTokenGenreted(generateSessionString, "5m")
 
-        await user.updateOne({ email }, { $set: { sessions: { "forgetPassword": generateSessionString }, otp:generateOTP } })
+        await user.updateOne({ email }, { $set: { sessions: { "forgetPassword": generateSessionString }, otp: generateOTP } })
 
         sendMail({
             subject: "Forget your password",
@@ -233,13 +233,16 @@ const newPassword = async (req: Request, res: Response) => {
     }
 }
 
-const getWork = async (req:Request, res:Response)=>{
+const session = async (req: Request, res: Response) => {
     try {
-        return res.status(200).json("Working")
+        const { userId, email } = req
+
+        return res.status(200).json({userId, email})
     } catch (error) {
-        
+        console.log("Session Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
     }
 }
 
 
-export { register, verifyOTP, verifyForgetPasswordOTP, login, newPassword, forgetpassword, getWork }
+export { register, verifyOTP, verifyForgetPasswordOTP, login, newPassword, forgetpassword, session }

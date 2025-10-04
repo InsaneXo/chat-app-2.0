@@ -9,8 +9,9 @@ import { useToast } from '../../context/ToastMessageProvider';
 import { useEffect, useState } from 'react';
 
 const Login = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm<InputTypes>();
+    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<InputTypes>();
     const [loading, setLoading] = useState<boolean>(false)
+    const [rememberMe, setRememberMe] = useState<boolean>(false)
     const { setStore } = useStore()
     const { setToast } = useToast()
 
@@ -25,22 +26,40 @@ const Login = () => {
                     password: formData.password
                 }
             })
-            setToast({ status: "Success", message: data.message})
+            setToast({ status: "Success", message: data.message })
             setStore({ isAuthenticate: true, userId: data.userId })
             localStorage.setItem("token", data.token)
-        } catch (error:any) {
-            if(error){
-                setToast({ status: "Error", message: error.response.data.message})
+            rememberMeHandler()
+        } catch (error: any) {
+            if (error) {
+                setToast({ status: "Error", message: error.response.data.message })
             }
         }
-        finally{
+        finally {
             setLoading(false)
         }
     }
 
-    useEffect(() => {
+    const rememberMeHandler = () => {
+        if (rememberMe) {
+            const value = watch()
+            localStorage.setItem('userCredential', JSON.stringify({email: value.email, password: value.password}))
+            return
+        }
+        localStorage.removeItem("userCredential")
+    }
 
-    }, [])
+    useEffect(()=>{
+        const getValue = localStorage.getItem("userCredential")
+        if(getValue){
+            const {email, password} = JSON.parse(getValue)
+            setValue("email", email)
+            setValue("password", password)
+            setRememberMe(true)
+        }
+    },[])
+
+
     return (
         <div className="h-screen w-screen bg-gradient-to-r from-[#FCF5EB] to-[#FFF8E1] flex justify-center items-center">
             <div className="h-[90%] w-[90%] bg-white rounded-3xl shadow-2xl flex overflow-hidden max-w-5xl">
@@ -82,12 +101,12 @@ const Login = () => {
                         )}
                         <div className='flex items-center justify-between '>
                             <div className='flex gap-1'>
-                                <input type='checkbox' />
+                                <input type='checkbox' className=' cursor-pointer' checked={rememberMe} onChange={()=>setRememberMe(!rememberMe)} />
                                 <div className='text-gray-500'>Remember Me</div>
                             </div>
                             <Link to={'/forget-password'} className="text-[#29D369] font-semibold cursor-pointer hover:underline">Forget Password?</Link>
                         </div>
-                        <button disabled={loading} type='submit' className={`w-full h-12  ${loading ? "bg-green-300": "bg-[#29D369]"}  rounded-2xl text-white text-lg font-semibold  transition-all duration-300 ${loading ? "cursor-not-allowed": "cursor-pointer hover:bg-green-500"} `}>
+                        <button disabled={loading} type='submit' className={`w-full h-12  ${loading ? "bg-green-300" : "bg-[#29D369]"}  rounded-2xl text-white text-lg font-semibold  transition-all duration-300 ${loading ? "cursor-not-allowed" : "cursor-pointer hover:bg-green-500"} `}>
                             Login
                         </button>
                     </form>

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, type ReactNode } from "reac
 interface StoreType {
   isAuthenticate: boolean;
   userId: string;
+  userEmail?: string;
 }
 
 interface StoreContextType {
@@ -27,7 +28,8 @@ interface StoreProviderProps {
 export const StoreProvider = ({ children }: StoreProviderProps) => {
   const [store, setStore] = useState<StoreType>({
     isAuthenticate: false,
-    userId: ""
+    userId: "",
+    userEmail: ""
   });
 
   return (

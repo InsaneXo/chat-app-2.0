@@ -26,7 +26,8 @@ const MessageList = () => {
         className="flex-1 w-full  
              p-3 flex flex-col-reverse gap-2 overflow-y-auto"
       >
-        {Array(15).fill(0).map((_, i) => (
+        {Array(100
+        ).fill(0).map((_, i) => (
           <MessageItem
             key={i}
             message={i % 2 === 0 ? 'Hello World how are you ' : 'Hello Bipin'}

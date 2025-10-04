@@ -37,6 +37,7 @@ export interface InputTypes {
     confirmPassword?: string;
     name?:string;
     otp?:string;
+    userCredential:boolean;
 }
 
 export interface OTPInputProps {
