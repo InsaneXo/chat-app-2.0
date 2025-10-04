@@ -1,4 +1,3 @@
-import React from "react";
 import CustomIcon from "./UI/CustomIcon";
 
 interface MessageItem {

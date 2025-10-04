@@ -1,4 +1,3 @@
-import React from 'react'
 import CustomIcon from '../../components/UI/CustomIcon'
 import MessageItem from '../../components/MessageItem'
 

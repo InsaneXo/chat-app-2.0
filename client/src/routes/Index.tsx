@@ -1,4 +1,4 @@
-import { Suspense, useContext, useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import AuthRouter from './Auth.router'
 import ProtectiveRouter from './Protective.router'
@@ -12,7 +12,7 @@ const Router = () => {
 
     const verifySession = async () => {
         try {
-            if(!localStorage.getItem("token")) return
+            if (!localStorage.getItem("token")) return
 
             const { data } = await axios({
                 url: '/api/auth/session',

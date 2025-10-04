@@ -1,4 +1,3 @@
-
 import CustomInputBox from '../../components/UI/CustomInputBox';
 import { useForm } from "react-hook-form";
 import type { InputTypes } from '../../types/component';

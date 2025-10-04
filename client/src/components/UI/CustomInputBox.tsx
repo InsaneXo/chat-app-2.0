@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import CustomIcon from './CustomIcon';
 import type { CustomInputProps } from '../../types/component';
 
