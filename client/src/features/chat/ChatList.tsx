@@ -9,10 +9,6 @@ const ChatList = () => {
                 <h1 className='font-semibold my-5 text-[#29D369]'>ConnectWave</h1>
                 <div className='flex items-center gap-1'>
                     <div className='h-10 w-10 hover:bg-[#EAE8E6] rounded-full flex justify-center items-center cursor-pointer'>
-                        <CustomIcon name='mdi:user-add-outline' />
-                        {/* mdi:user-add */}
-                    </div>
-                    <div className='h-10 w-10 hover:bg-[#EAE8E6] rounded-full flex justify-center items-center cursor-pointer'>
                         <CustomIcon name='qlementine-icons:menu-dots-16' />
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import ChatWindow from '../features/chat/ChatWindow'
 import StatusWindow from '../features/status/StatusWindow'
 import Settings from '../pages/Settings'
 import Profile from '../pages/Profile'
+import Friends from '../pages/Friends'
 
 const ProtectiveRouter = () => {
     return (
@@ -13,6 +14,7 @@ const ProtectiveRouter = () => {
                 <Route path='/' element={<Navigate to={'/chats'} replace />} />
                 <Route path='/chats' element={<ChatWindow />} index />
                 <Route path='/status' element={<StatusWindow />} />
+                <Route path='/friends' element={<Friends/>} />
                 <Route path='/settings' element={<Settings />} />
                 <Route path='/profile' element={<Profile/>} /> 
                 <Route path='*' element={<Navigate to="/" replace />} />

@@ -23,6 +23,10 @@ const MenuBar = () => {
         <Link to="/status" className={getLinkClasses('/status')}>
           <CustomIcon name='majesticons:chat-status' />
         </Link>
+
+         <Link to="/friends" className={getLinkClasses('/friends')}>
+          <CustomIcon name='fa7-solid:user-friends' />
+        </Link>
       </div>
 
       <div>
