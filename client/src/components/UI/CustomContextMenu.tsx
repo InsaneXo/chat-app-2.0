@@ -5,7 +5,7 @@ import CustomIcon from "./CustomIcon";
 interface Props {
   position: CustomContextMenuProps | null;
   onClose: () => void;
-  data: ContextMenuDataProps[]
+  data?: ContextMenuDataProps[]
 }
 
 const CustomContextMenu = ({ position, onClose, data }: Props) => {
@@ -31,7 +31,7 @@ const CustomContextMenu = ({ position, onClose, data }: Props) => {
   return (
 
     <div ref={menuRef} onContextMenu={(e)=>e.preventDefault()} className='fixed w-60 rounded-lg right-[-30px] top-10 bg-white shadow-lg z-30' style={{ top: position?.y, left: position?.x }}>
-      {data.map((item)=> <ContextItems data={item} />)}
+      {data?.map((item)=> <ContextItems data={item} />)}
     </div>
   )
 }

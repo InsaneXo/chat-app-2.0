@@ -1,6 +1,12 @@
 import CustomIcon from './CustomIcon'
 
-export const CustomSearchBar = () => {
+interface CustomSearchBarProps {
+    placeholder:string;
+    setQuery:(value: string) => void;
+    query: string
+}
+
+export const CustomSearchBar = ({placeholder, setQuery, query}:CustomSearchBarProps) => {
     return (
         <div className=' relative'>
             <input className='w-full h-10 px-7 rounded-2xl 
@@ -10,7 +16,7 @@ export const CustomSearchBar = () => {
           focus:ring-2 
           focus:ring-[#29D369] 
           focus:border-[#29D369] 
-          transition-all duration-200' type='text' placeholder='Search chat' />
+          transition-all duration-200' type='text' value={query} onChange={(e)=>setQuery(e.target.value)} placeholder={placeholder} />
             <CustomIcon name='bitcoin-icons:search-filled' className="absolute left-2 top-1/2 -translate-y-1/2 text-[#29D369] cursor-pointer" />
 
         </div>

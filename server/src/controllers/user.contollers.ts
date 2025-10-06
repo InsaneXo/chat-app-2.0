@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import friendRequest from "../models/friendRequest";
+import user from "../models/user";
 
 const sendFriendRequest = async (req: Request, res: Response) => {
     try {
@@ -9,22 +11,133 @@ const sendFriendRequest = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const isFriendSent = await friendRequest.exists({sender: req.userId, receiver: receiverId})
+        const isFriendSent = await friendRequest.exists({ sender: req.userId, receiver: receiverId })
 
-        if(isFriendSent){
-            return res.status(409).json({message: "Friend Request already sent"})
+        if (isFriendSent) {
+            return res.status(409).json({ message: "Friend Request already sent" })
         }
 
         await friendRequest.create({
-            receiver:receiverId,
+            receiver: receiverId,
             sender: req.userId
         })
 
-        return res.status(201).json({message: "Friend Request Sent Successfuly"})
+        return res.status(201).json({ message: "Friend Request Sent Successfuly" })
     } catch (error) {
         console.log("Send Friend Request Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })
     }
 }
 
-export { sendFriendRequest }
+const friendRequestList = async (req: Request, res: Response) => {
+    try {
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const friendRequestList = await friendRequest.aggregate([
+            {
+                $match: { status: "pending", receiver: new mongoose.Types.ObjectId(req.userId) }
+            },
+            {
+                $lookup: {
+                    from: "usermodels",
+                    localField: "sender",
+                    foreignField: "_id",
+                    as: "senderDetails"
+                }
+            },
+            {
+                $unwind: "$senderDetails"
+            },
+            {
+                $project: {
+                    _id: 1,
+                    senderId: "$senderDetails._id",
+                    name: "$senderDetails.name",
+                    email: "$senderDetails.email",
+                }
+            },
+            { $sort: { senderName: 1 } },
+            { $skip: skip },
+            { $limit: limit }
+        ])
+
+        const totalCount = await friendRequest.countDocuments({
+            status: "pending",
+            receiver: req.userId?.toString()
+        });
+
+        return res.status(200).json({
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            totalCount,
+            user: friendRequestList
+        })
+
+    } catch (error) {
+        console.log("Friend Request List : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+const searchUsers = async (req: Request, res: Response) => {
+  try {
+    const name = req.query.name as string;
+    const loggedInUserId = new mongoose.Types.ObjectId(req.userId);
+
+    const userFind = await user.aggregate([
+      {
+        $match: {
+          name: { $regex: name, $options: "i" },
+          _id: { $ne: loggedInUserId },
+          isActive: true
+        }
+      },
+      {
+        $lookup: {
+          from: "friendrequestmodels",
+          let: { userId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $or: [
+                    { $and: [{ $eq: ["$sender", loggedInUserId] }, { $eq: ["$receiver", "$$userId"] }] },
+                    { $and: [{ $eq: ["$receiver", loggedInUserId] }, { $eq: ["$sender", "$$userId"] }] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "friendRequests"
+        }
+      },
+      {
+        $match: {
+          friendRequests: { $eq: [] }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          avatarUrl: 1
+        }
+      },
+      {
+        $sort: { name: 1 }
+      }
+    ]);
+
+    return res.status(200).json({ user: userFind });
+  } catch (error) {
+    console.log("Search Friends controller:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+
+export { sendFriendRequest, friendRequestList, searchUsers }
