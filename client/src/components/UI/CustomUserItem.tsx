@@ -6,21 +6,16 @@ import CustomIcon from "./CustomIcon";
 interface UserType {
     _id: string;
     name: string;
-    senderId?:string
+    senderId: string
     email: string;
     avatar?: string;
 }
-interface SearchTypeProps {
-    _id?: string;
-    value: string
-}
-
 interface CustomUserItemProps {
     contextMenuActive: boolean;
     user: UserType;
     onContextMenuData?: ContextMenuDataProps[];
     isSearch: boolean;
-    handler: React.Dispatch<React.SetStateAction<SearchTypeProps>>;
+    handler: (_id: string, type: string) => void
 }
 
 export const CustomUserItem = ({ contextMenuActive, user, onContextMenuData, isSearch, handler }: CustomUserItemProps) => {
@@ -58,18 +53,19 @@ export const CustomUserItem = ({ contextMenuActive, user, onContextMenuData, isS
                         {isSearch ? (
                             <div
                                 className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer"
-                                onClick={() => handler({ _id: user?._id, value:"sendRequest" })}
+                                // sendRequest
+                                onClick={() => handler(user._id, "sendRequest")}
                             >
                                 <CustomIcon name="iconoir:add-user" className="h-5 w-5" />
                                 <span>Send Request</span>
                             </div>
                         ) : (
                             <>
-                                <div className="p-2 flex items-center bg-red-400 rounded-md gap-1.5 text-white font-semibold cursor-pointer" onClick={()=> handler({_id: user?.senderId, value:"rejectRequest"})}>
+                                <div className="p-2 flex items-center bg-red-400 rounded-md gap-1.5 text-white font-semibold cursor-pointer" onClick={() => handler(user?._id, "rejected")}>
                                     <CustomIcon name="basil:cross-outline" className="h-5 w-5" />
                                     <span>Reject</span>
                                 </div>
-                                <div className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer" onClick={()=> handler({_id: user?.senderId, value:"acceptRequest"})}>
+                                <div className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer" onClick={() => handler(user?._id, "accepted")}>
                                     <CustomIcon name="teenyicons:tick-small-outline" className="h-5 w-5" />
                                     <span>Accept</span>
                                 </div>

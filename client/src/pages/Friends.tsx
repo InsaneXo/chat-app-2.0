@@ -11,11 +11,16 @@ interface SearchTypeProps {
     value: string
 }
 
+interface setFriendRequestsType {
+    _id: string;
+    name: string;
+    email: string;
+}
+
 const Friends = () => {
     const { query, setQuery, results, loading, error } = useSearch("/api/user/search")
     const { setToast } = useToast()
-    const [friendRequests, setFriendRequests] = useState<any[]>([])
-    const [searchType, setSearchType] = useState<SearchTypeProps>()
+    const [friendRequests, setFriendRequests] = useState<setFriendRequestsType[]>([])
 
     const fetchFriendRequests = async () => {
         try {
@@ -31,17 +36,18 @@ const Friends = () => {
         }
     }
 
-    useEffect(() => {
-        fetchFriendRequests()
-    }, [])
 
-    const requestHandler = () => {
 
-        if (searchType?.value === "sendRequest") {
-            sendFriendRequestHandler(searchType._id)
+    const requestHandler = (_id: string, type: string) => {
+
+        if (type === "sendRequest") {
+            sendFriendRequestHandler(_id)
         }
-        else if (searchType?.value === "rejectRequest") {
-
+        else if (type === "rejected" || type === "accepted") {
+            FriendRequestHandler(_id, type)
+        }
+        else {
+            setToast({ status: "Error", message: "Invaild Search Type" })
         }
     }
 
@@ -56,9 +62,32 @@ const Friends = () => {
         }
     }
 
+    const FriendRequestHandler = async (receiverId: string, searchTypeValue: string) => {
+        try {
+            const { data } = await axios({
+                url: "/api/user/friend-request",
+                method: "PUT",
+                data: {
+                    requestId: receiverId,
+                    type: searchTypeValue
+                }
+            })
+            setToast({ status: "Success", message: data.message })
+        } catch (error: any) {
+            if (error) {
+                setToast({ status: "Error", message: error.response.data.message })
+            }
+        }
+    }
+    const displayList = query ? results : friendRequests
+
+
     if (error) setToast({ status: "Error", message: error })
 
-    const displayList = query ? results : friendRequests
+
+    useEffect(() => {
+        fetchFriendRequests()
+    }, [])
 
     return (
         <div className="flex-1 flex">
@@ -88,13 +117,26 @@ const Friends = () => {
                             isSearch={!!query}
                             contextMenuActive={false}
                             user={item}
-                            handler={setSearchType}
+                            handler={requestHandler}
                         />
                     ))}
                 </div>
             </div>
 
-            <div className="w-full h-screen flex flex-col bg-amber-300"></div>
+            <div className="w-full h-full flex justify-center items-center bg-gradient-to-b text-white">
+                <div className="flex flex-col justify-center items-center text-center space-y-6 p-8 rounded-2xl shadow-lg bg-[#F6F5F4] backdrop-blur-lg">
+                    <img
+                        src="/images/favicon.png"
+                        alt="connectWave_logo"
+                        className="w-32 h-32 mb-2 animate-bounce-slow"
+                    />
+                    <h1 className="text-3xl font-semibold text-[#29D369]">ConnectWave</h1>
+                    <p className="text-lg max-w-md text-gray-500 leading-relaxed">
+                        Connect with new people! View and manage your friend requests to grow your chat circle.
+                    </p>
+                </div>
+            </div>
+
         </div>
     )
 }
