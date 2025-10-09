@@ -54,6 +54,7 @@ const Friends = () => {
     const sendFriendRequestHandler = async (receiverId: string) => {
         try {
             const { data } = await axios.post("/api/user/friend-request", { receiverId })
+
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {
@@ -72,6 +73,7 @@ const Friends = () => {
                     type: searchTypeValue
                 }
             })
+            setFriendRequests((prev) => prev.filter((item) => item._id !== receiverId))
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {

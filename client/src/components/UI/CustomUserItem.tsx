@@ -9,6 +9,7 @@ interface UserType {
     senderId: string
     email: string;
     avatar?: string;
+    status?: string
 }
 interface CustomUserItemProps {
     contextMenuActive: boolean;
@@ -52,12 +53,15 @@ export const CustomUserItem = ({ contextMenuActive, user, onContextMenuData, isS
                     <div className='flex items-center gap-2'>
                         {isSearch ? (
                             <div
-                                className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer"
+                                className={`p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold ${user.status ===
+                                    "not_friends" && "cursor-pointer"}`}
                                 // sendRequest
-                                onClick={() => handler(user._id, "sendRequest")}
+                                onClick={() => user.status === "not_friends" &&
+                                    handler(user._id, "sendRequest")
+                                }
                             >
-                                <CustomIcon name="iconoir:add-user" className="h-5 w-5" />
-                                <span>Send Request</span>
+                                <CustomIcon name={user.status === "not_friends" ? "iconoir:add-user" : "tabler:clock"} className="h-5 w-5" />
+                                <span>{user.status === "not_friends" ? "Send Friend" : "Pending"}</span>
                             </div>
                         ) : (
                             <>
