@@ -134,6 +134,13 @@ const searchUsers = async (req: Request, res: Response) => {
                             else: "not_friends",
                         },
                     },
+                    senderId: {
+                        $cond: {
+                            if: { $gt: [{ $size: "$friendRequests" }, 0] },
+                            then: { $arrayElemAt: ["$friendRequests.sender", 0] },
+                            else: null,
+                        },
+                    },
                 },
             },
             {
@@ -143,12 +150,14 @@ const searchUsers = async (req: Request, res: Response) => {
                     email: 1,
                     avatarUrl: 1,
                     status: 1,
+                    senderId: 1,
                 },
             },
             {
                 $sort: { name: 1 },
             },
         ]);
+
 
         return res.status(200).json({ user: userFind });
     } catch (error) {

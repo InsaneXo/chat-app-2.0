@@ -5,11 +5,9 @@ import { CustomUserItem } from "../components/UI/CustomUserItem"
 import useSearch from "../hooks/UseSearch"
 import { useToast } from "../context/ToastMessageProvider"
 import { useEffect, useState } from "react"
+import { useStore } from "../context/StoreProvider"
 
-interface SearchTypeProps {
-    _id: string;
-    value: string
-}
+
 
 interface setFriendRequestsType {
     _id: string;
@@ -18,8 +16,9 @@ interface setFriendRequestsType {
 }
 
 const Friends = () => {
-    const { query, setQuery, results, loading, error } = useSearch("/api/user/search")
+    const { query, setQuery, results, setResults, loading, error } = useSearch("/api/user/search")
     const { setToast } = useToast()
+    const { store } = useStore()
     const [friendRequests, setFriendRequests] = useState<setFriendRequestsType[]>([])
 
     const fetchFriendRequests = async () => {
@@ -54,7 +53,7 @@ const Friends = () => {
     const sendFriendRequestHandler = async (receiverId: string) => {
         try {
             const { data } = await axios.post("/api/user/friend-request", { receiverId })
-
+            setResults((prev) => prev.map((item) => item._id === receiverId ? { ...item, status: "pending" } : item))
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {
@@ -93,7 +92,7 @@ const Friends = () => {
 
     return (
         <div className="flex-1 flex">
-            <div className="h-full flex flex-col bg-white w-[35%] border-r-[2px] border-gray-200 p-1">
+            <div className="h-full flex flex-col bg-white w-[700px] border-r-[2px] border-gray-200 p-1">
                 <div className='flex items-center justify-between'>
                     <h1 className='font-semibold my-5 text-[#29D369]'>ConnectWave</h1>
                     <div className='flex items-center gap-1'>
@@ -102,9 +101,7 @@ const Friends = () => {
                         </div>
                     </div>
                 </div>
-
                 <CustomSearchBar query={query} setQuery={setQuery} placeholder="Search Users" />
-
                 <div className="my-5 flex items-center justify-between">
                     <div className="text-[#29D369]">{query ? "Search Users" : "Friend Requests"}</div>
                     <div className="h-4 w-4 rounded-full bg-[#1DAA61] flex items-center justify-center text-white text-[10px]">
@@ -116,8 +113,8 @@ const Friends = () => {
                     {displayList.map((item) => (
                         <CustomUserItem
                             key={item._id}
+                            loginId={store.userId}
                             isSearch={!!query}
-                            contextMenuActive={false}
                             user={item}
                             handler={requestHandler}
                         />

@@ -5,6 +5,7 @@ interface UseSearchReturn<T> {
     query: string;
     setQuery: (value: string) => void;
     results: T[];
+    setResults: React.Dispatch<React.SetStateAction<T[]>>;
     loading: boolean;
     error: string
 }
@@ -42,7 +43,7 @@ const useSearch = <T = any>(apiUrl: string, delay = 500): UseSearchReturn<T> => 
         return () => clearTimeout(handler);
     }, [query, apiUrl, delay]);
 
-    return { query, setQuery, results, loading, error };
+    return { query, setQuery, results, loading, error, setResults };
 };
 
 export default useSearch
