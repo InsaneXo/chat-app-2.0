@@ -12,9 +12,14 @@ const sendFriendRequest = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const isFriendSent = await friendRequest.exists({ sender: req.userId, receiver: receiverId })
+        const existingRequest = await friendRequest.exists({
+            $or: [
+                { sender: req.userId, receiver: receiverId },
+                { sender: receiverId, receiver: req.userId }
+            ]
+        });
 
-        if (isFriendSent) {
+        if (existingRequest) {
             return res.status(200).json({ message: "Friend Request already sent" })
         }
 
@@ -141,6 +146,13 @@ const searchUsers = async (req: Request, res: Response) => {
                             else: null,
                         },
                     },
+                    requestId: {
+                        $cond: {
+                            if: { $gt: [{ $size: "$friendRequests" }, 0] },
+                            then: { $arrayElemAt: ["$friendRequests._id", 0] },
+                            else: null,
+                        },
+                    },
                 },
             },
             {
@@ -151,6 +163,7 @@ const searchUsers = async (req: Request, res: Response) => {
                     avatarUrl: 1,
                     status: 1,
                     senderId: 1,
+                    requestId: 1,
                 },
             },
             {

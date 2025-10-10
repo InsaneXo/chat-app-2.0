@@ -6,6 +6,7 @@ import useSearch from "../hooks/UseSearch"
 import { useToast } from "../context/ToastMessageProvider"
 import { useEffect, useState } from "react"
 import { useStore } from "../context/StoreProvider"
+import { useNavigate, useNavigation } from "react-router-dom"
 
 
 
@@ -13,6 +14,7 @@ interface setFriendRequestsType {
     _id: string;
     name: string;
     email: string;
+    requestId:string
 }
 
 const Friends = () => {
@@ -50,10 +52,10 @@ const Friends = () => {
         }
     }
 
-    const sendFriendRequestHandler = async (receiverId: string) => {
+    const sendFriendRequestHandler = async (id: string) => {
         try {
-            const { data } = await axios.post("/api/user/friend-request", { receiverId })
-            setResults((prev) => prev.map((item) => item._id === receiverId ? { ...item, status: "pending" } : item))
+            const { data } = await axios.post("/api/user/friend-request", {receiverId: id })
+            setResults((prev) => prev.map((item) => item._id === id ? { ...item, status: "pending" } : item))
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {
@@ -62,17 +64,21 @@ const Friends = () => {
         }
     }
 
-    const FriendRequestHandler = async (receiverId: string, searchTypeValue: string) => {
+    const FriendRequestHandler = async (id: string, searchTypeValue: string) => {
         try {
             const { data } = await axios({
                 url: "/api/user/friend-request",
                 method: "PUT",
                 data: {
-                    requestId: receiverId,
+                    requestId: id,
                     type: searchTypeValue
                 }
             })
-            setFriendRequests((prev) => prev.filter((item) => item._id !== receiverId))
+            if (query) {
+                setResults((prev) => prev.filter((item) => item.requestId !== id))
+            } else {
+                setFriendRequests((prev) => prev.filter((item) => item._id !== id))
+            }
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {

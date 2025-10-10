@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import CustomIcon from "./CustomIcon";
 
 interface UserType {
@@ -7,7 +8,8 @@ interface UserType {
     senderId: string
     email: string;
     avatar?: string;
-    status?: string
+    status?: string;
+    requestId: string;
 }
 interface CustomUserItemProps {
     user: UserType;
@@ -17,6 +19,7 @@ interface CustomUserItemProps {
 }
 
 export const CustomUserItem = ({ user, isSearch, loginId, handler }: CustomUserItemProps) => {
+    const navigation = useNavigate()
 
     const styling = {
         bgColor: user.status === "not_friends" ? "bg-[#29D369]" : "bg-red-500",
@@ -46,46 +49,53 @@ export const CustomUserItem = ({ user, isSearch, loginId, handler }: CustomUserI
                     <div className='flex items-center gap-2'>
                         {isSearch ? (
                             <>
-                                {/* Case 1: No friend request yet */}
                                 {!user.senderId && (
                                     <div
                                         className={`p-2 flex items-center ${styling.bgColor} ${styling.cursor} rounded-md gap-1.5 text-white font-semibold`}
-                                        onClick={() => handler(user._id, "sendRequest")}
+                                        onClick={() => user.status === "not_friends" && handler(user._id, "sendRequest")}
                                     >
-                                        <CustomIcon name="iconoir:add-user" className="h-5 w-5" />
-                                        <span>Send Request</span>
+                                        <CustomIcon name={user.status === "pending" ? 'tabler:clock' : 'iconoir:add-user'} className="h-5 w-5" />
+                                        <span>{styling.buttonFont}</span>
                                     </div>
                                 )}
 
-                                {/* Case 2: Request sent by logged-in user */}
                                 {user.senderId === loginId && (
                                     <div
-                                        className={`p-2 flex items-center ${styling.bgColor} rounded-md gap-1.5 text-white font-semibold`}
+                                        className={`p-2 flex items-center ${user.status === "accepted" ? "bg-[#29D369] cursor-pointer" : "bg-red-500"} rounded-md gap-1.5 text-white font-semibold `}
+                                        onClick={() => user.status === "accepted" && navigation('/chats')}
                                     >
-                                        <CustomIcon name="tabler:clock" className="h-5 w-5" />
-                                        <span>Pending</span>
+                                        <CustomIcon name={user.status === "accepted" ? "material-symbols-light:chat-outline-rounded" : "tabler:clock"} className="h-5 w-5" />
+                                        <span>{user.status === "accepted" ? "Chat" : "Pending"}</span>
                                     </div>
                                 )}
 
-                                {/* Case 3: Request received (not sent by current user) */}
                                 {user.senderId && user.senderId !== loginId && (
                                     <>
-                                        <div
-                                            className="p-2 flex items-center bg-red-400 rounded-md gap-1.5 text-white font-semibold cursor-pointer"
-                                            onClick={() => handler(user._id, "rejected")}
+                                        {user.status === "accepted" ? <div
+                                            className={`p-2 flex items-center ${user.status === "accepted" ? "bg-[#29D369] cursor-pointer" : "bg-red-500"} rounded-md gap-1.5 text-white font-semibold `}
+                                            onClick={() => user.status === "accepted" && navigation('/chats')}
                                         >
-                                            <CustomIcon name="basil:cross-outline" className="h-5 w-5" />
-                                            <span>Reject</span>
-                                        </div>
+                                            <CustomIcon name={user.status === "accepted" ? "material-symbols-light:chat-outline-rounded" : "tabler:clock"} className="h-5 w-5" />
+                                            <span>{user.status === "accepted" ? "Chat" : "Pending"}</span>
+                                        </div> : <>
+                                            <div
+                                                className="p-2 flex items-center bg-red-400 rounded-md gap-1.5 text-white font-semibold cursor-pointer"
+                                                onClick={() => handler(user?.requestId, "rejected")}
+                                            >
+                                                <CustomIcon name="basil:cross-outline" className="h-5 w-5" />
+                                                <span>Reject</span>
+                                            </div>
 
-                                        <div
-                                            className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer"
-                                            onClick={() => handler(user._id, "accepted")}
-                                        >
-                                            <CustomIcon name="teenyicons:tick-small-outline" className="h-5 w-5" />
-                                            <span>Accept</span>
-                                        </div>
+                                            <div
+                                                className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer"
+                                                onClick={() => handler(user?.requestId, "accepted")}
+                                            >
+                                                <CustomIcon name="teenyicons:tick-small-outline" className="h-5 w-5" />
+                                                <span>Accept</span>
+                                            </div>
+                                        </>}
                                     </>
+
                                 )}
                             </>
                         ) : <>
