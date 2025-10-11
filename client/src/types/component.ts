@@ -55,3 +55,16 @@ export interface ToastType {
 export interface CustomToastMessageProps {
     data:ToastType
 }
+
+export interface UserType {
+  userId: string;
+  name: string;
+  email: string;
+  avatar: string;
+  status: string;
+}
+
+export interface ChatListTypes {
+  _id: string;
+  user: UserType
+}

@@ -1,8 +1,14 @@
 import CustomIcon from '../../components/UI/CustomIcon'
 import { CustomSearchBar } from '../../components/UI/CustomSearchBar'
-import ChatItem from '../../components/ChatItem'
+import ChatItem from '../../components/UI/CustomChatItem'
+import type { ChatListTypes } from '../../types/component'
 
-const ChatList = () => {
+
+interface ChatListProps {
+    chatList: ChatListTypes[]
+}
+
+const ChatList = ({ chatList }: ChatListProps) => {
     return (
         <div className='h-full flex flex-col bg-white w-[700px] border-r-[2px] border-gray-200 p-1'>
             <div className='flex items-center justify-between'>
@@ -13,7 +19,7 @@ const ChatList = () => {
                     </div>
                 </div>
             </div>
-            <CustomSearchBar />
+            <CustomSearchBar placeholder='Search chat' />
             <div className='my-3 flex gap-2'>
                 <div className='w-fit p-1 rounded-lg bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer'>All</div>
                 <div className='w-fit p-1 rounded-lg bg-[#F6F5F4] hover:bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer '>Unread</div>
@@ -21,9 +27,7 @@ const ChatList = () => {
                 <div className='w-fit p-1 rounded-lg bg-[#F6F5F4] hover:bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer '>Groups</div>
             </div>
             <div className='flex-1 w-full overflow-auto'>
-                <ChatItem />
-                <ChatItem />
-                <ChatItem />
+                {chatList.map((item) => <ChatItem key={item._id} _id={item._id} name={item.user.name}  />)}
             </div>
         </div>
     )

@@ -23,11 +23,13 @@ const showChatList = async (req: Request, res: Response) => {
             },
             {
                 $addFields: {
-                    otherUser: {
-                        $filter: {
-                            input: "$userDetails",
-                            as: "user",
-                            cond: { $ne: ["$$user._id", userId] }
+                    user: {
+                        $first: {
+                            $filter: {
+                                input: "$userDetails",
+                                as: "user",
+                                cond: { $ne: ["$$user._id", userId] }
+                            }
                         }
                     }
                 }
@@ -35,11 +37,11 @@ const showChatList = async (req: Request, res: Response) => {
             {
                 $project: {
                     _id: 1,
-                    "otherUser._id": 1,
-                    "otherUser.name": 1,
-                    "otherUser.email": 1,
-                    "otherUser.avatarUrl": 1,
-                    "otherUser.status": 1
+                    "user._id": 1,
+                    "user.name": 1,
+                    "user.email": 1,
+                    "user.avatarUrl": 1,
+                    "user.status": 1
                 }
             }
         ]);
@@ -80,4 +82,58 @@ const sendMessage = async (req: Request, res: Response) => {
     }
 }
 
-export { showChatList, sendMessage }
+const showMessageList = async (req: Request, res: Response) => {
+    try {
+        const chatId = req.query.chatId as string
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        if (!chatId) {
+            return res.status(400).json({ message: "All Fields are requried" })
+        }
+
+        const messages = await message.aggregate([
+            {
+                $match: { chatId: new mongoose.Types.ObjectId(chatId) }
+            },
+            {
+                $sort: { createdAt: 1 } 
+            },
+            {
+                $skip: skip 
+            },
+            {
+                $limit: limit 
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sender: 1,
+                    content: 1,
+                    messageType: 1,
+                    seenBy: 1,
+                    createdAt: 1
+                }
+            }
+        ])
+
+
+        const totalCount = await message.countDocuments({
+            chatId: new mongoose.Types.ObjectId(chatId)
+        });
+
+        return res.status(200).json({
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            totalCount,
+            messages
+        })
+
+    } catch (error) {
+        console.log("Show Message List Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+export { showChatList, sendMessage, showMessageList }

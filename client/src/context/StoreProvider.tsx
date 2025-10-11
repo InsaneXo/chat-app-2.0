@@ -9,6 +9,8 @@ interface StoreType {
 interface StoreContextType {
   store: StoreType;
   setStore: React.Dispatch<React.SetStateAction<StoreType>>;
+  selectedId: string
+  setSelectedId:React.Dispatch<React.SetStateAction<string>>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -31,9 +33,10 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     userId: "",
     userEmail: ""
   });
+  const [selectedId, setSelectedId] = useState<string>("")
 
   return (
-    <StoreContext.Provider value={{ store, setStore }}>
+    <StoreContext.Provider value={{ store, setStore, selectedId, setSelectedId  }}>
       {children}
     </StoreContext.Provider>
   );

@@ -1,7 +1,72 @@
 import CustomIcon from '../../components/UI/CustomIcon'
 import MessageItem from '../../components/MessageItem'
+import { useToast } from '../../context/ToastMessageProvider'
+import axios from 'axios'
+import { useStore } from '../../context/StoreProvider'
+import { useEffect, useState } from 'react'
+
+interface messageType {
+  body: string,
+  type: string
+}
+
+interface messageListType {
+  _id: string;
+  sender: string;
+  content: string;
+  messageType: string;
+  seenBy: string;
+  createdAt: string;
+}
+
+
 
 const MessageList = () => {
+  const { store, selectedId } = useStore()
+  const { setToast } = useToast()
+  const [content, setContent] = useState<messageType>({
+    body: "",
+    type: ""
+  })
+  const [messageList, setMessageList] = useState<messageListType[]>()
+  const sendMessageHandler = async () => {
+    try {
+      await axios({
+        url: "/api/chat/message",
+        method: "POST",
+        data: {
+          chatId: selectedId,
+          content
+        }
+      })
+
+    } catch (error: any) {
+      if (error) {
+        setToast({ status: "Error", message: error.response.data.message })
+      }
+    }
+  }
+
+  const getMessageList = async () => {
+    try {
+
+      const { data } = await axios({
+        url: `/api/chat/message?chatId=${selectedId}`,
+        method: "GET",
+      })
+      setMessageList(data.messages)
+    } catch (error: any) {
+      if (error) {
+        setToast({ status: "Error", message: error.response.data.message })
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedId) return
+    getMessageList()
+  }, [selectedId])
+
   return (
     <div className="w-full h-screen flex flex-col bg-[url('/images/chatwindowimage.jpg')] ">
       {/* Header */}
@@ -25,16 +90,14 @@ const MessageList = () => {
         className="flex-1 w-full  
              p-3 flex flex-col-reverse gap-2 overflow-y-auto"
       >
-        {Array(100
-        ).fill(0).map((_, i) => (
-          <MessageItem
-            key={i}
-            message={i % 2 === 0 ? 'Hello World how are you ' : 'Hello Bipin'}
-            isSender={i % 2 === 0}
-            isRead={true}
-            time="10:00 am"
-          />
-        ))}
+        {messageList?.map((item) => <MessageItem
+          key={item._id}
+          message={item.content}
+          isSender={item.sender === store.userId}
+          isRead={true}
+          time="10:00 am"
+        />).reverse()}
+
       </div>
 
 
@@ -49,11 +112,13 @@ const MessageList = () => {
         <input
           className="flex-1 h-full border-none outline-none px-3"
           type="text"
+          value={content.body}
+          onChange={(e) => setContent({ body: e.target.value, type: "text" })}
           placeholder="Enter a message"
         />
-        <div className="h-12 w-12 rounded-full flex justify-center items-center bg-[#4ABB81] cursor-pointer">
+        {content.body && <div className="h-12 w-12 rounded-full flex justify-center items-center bg-[#4ABB81] cursor-pointer" onClick={sendMessageHandler}>
           <CustomIcon name="material-symbols-light:send" className="text-white" />
-        </div>
+        </div>}
       </div>
     </div>
   )

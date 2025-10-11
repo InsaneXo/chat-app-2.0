@@ -39,13 +39,13 @@ const Friends = () => {
 
 
 
-    const requestHandler = (_id: string, type: string) => {
+    const requestHandler = (id: string, type: string) => {
 
         if (type === "sendRequest") {
-            sendFriendRequestHandler(_id)
+            sendFriendRequestHandler(id)
         }
         else if (type === "rejected" || type === "accepted") {
-            FriendRequestHandler(_id, type)
+            FriendRequestHandler(id, type)
         }
         else {
             setToast({ status: "Error", message: "Invaild Search Type" })
