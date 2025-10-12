@@ -6,11 +6,17 @@ interface StoreType {
   userEmail?: string;
 }
 
+interface seletedChatDetailsType {
+  _id: string;
+  avatar: string;
+  name: string
+}
+
 interface StoreContextType {
   store: StoreType;
   setStore: React.Dispatch<React.SetStateAction<StoreType>>;
-  selectedId: string
-  setSelectedId:React.Dispatch<React.SetStateAction<string>>;
+  selectedChatDetails: seletedChatDetailsType
+  setSelectedChatDetails: React.Dispatch<React.SetStateAction<seletedChatDetailsType>>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -33,10 +39,14 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     userId: "",
     userEmail: ""
   });
-  const [selectedId, setSelectedId] = useState<string>("")
+  const [selectedChatDetails, setSelectedChatDetails] = useState<seletedChatDetailsType>({
+    _id: "",
+    avatar: "",
+    name: ""
+  })
 
   return (
-    <StoreContext.Provider value={{ store, setStore, selectedId, setSelectedId  }}>
+    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails }}>
       {children}
     </StoreContext.Provider>
   );

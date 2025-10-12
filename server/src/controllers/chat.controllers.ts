@@ -100,12 +100,12 @@ const showMessageList = async (req: Request, res: Response) => {
             {
                 $sort: { createdAt: 1 } 
             },
-            {
-                $skip: skip 
-            },
-            {
-                $limit: limit 
-            },
+            // {
+            //     $skip: skip 
+            // },
+            // {
+            //     $limit: limit 
+            // },
             {
                 $project: {
                     _id: 1,

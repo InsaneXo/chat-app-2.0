@@ -11,7 +11,7 @@ import { useStore } from '../../context/StoreProvider';
 const ChatWindow = () => {
   const [chatList, setChatList] = useState<ChatListTypes[]>([])
   const { setToast } = useToast()
-  const { selectedId } = useStore()
+
 
   const fetchChatList = async () => {
     try {
