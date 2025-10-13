@@ -3,7 +3,8 @@ import MessageItem from '../../components/MessageItem'
 import { useToast } from '../../context/ToastMessageProvider'
 import axios from 'axios'
 import { useStore } from '../../context/StoreProvider'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import useInfiniteChatScroll from '../../hooks/UseInfiniteChatScroll'
 
 interface messageType {
   body: string,
@@ -28,7 +29,14 @@ const MessageList = () => {
     body: "",
     type: ""
   })
-  const [messageList, setMessageList] = useState<messageListType[]>()
+  const {
+    messageList,
+    containerRef,
+    setMessageList,
+    loading,
+    fetchMessages,
+  } = useInfiniteChatScroll(selectedChatDetails._id);
+
   const sendMessageHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
@@ -48,7 +56,7 @@ const MessageList = () => {
           content
         }
       })
-      
+
       setMessageList((prev = []) => [...prev, tempMessage])
       setContent({
         body: "",
@@ -60,30 +68,37 @@ const MessageList = () => {
       }
     }
   }
-  const getMessageList = async () => {
-    try {
+  // const getMessageList = async () => {
+  //   try {
 
-      const { data } = await axios({
-        url: `/api/chat/message?chatId=${selectedChatDetails._id}`,
-        method: "GET",
-      })
-      setMessageList(data.messages)
-      console.log(data.messages)
-    } catch (error: any) {
-      if (error) {
-        setToast({ status: "Error", message: error.response.data.message })
-      }
-    }
-  }
+  //     const { data } = await axios({
+  //       url: `/api/chat/message?chatId=${selectedChatDetails._id}`,
+  //       method: "GET",
+  //     })
+  //     setMessageList(data.messages)
+  //     console.log(data.messages)
+  //   } catch (error: any) {
+  //     if (error) {
+  //       setToast({ status: "Error", message: error.response.data.message })
+  //     }
+  //   }
+  // }
 
   useEffect(() => {
     if (!selectedChatDetails._id) return
-    getMessageList()
+    fetchMessages()
   }, [selectedChatDetails._id])
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messageList]);
 
   return (
     <>
-      {selectedChatDetails._id ? <div className="w-full h-screen flex flex-col bg-[url('/images/chatwindowimage.jpg')] ">
+      {selectedChatDetails._id ? <div ref={containerRef} className="w-full h-screen flex flex-col bg-[url('/images/chatwindowimage.jpg')] ">
         {/* Header */}
         <div className="w-full h-16 bg-white flex items-center justify-between border-b border-gray-200 px-3">
           <div className="flex items-center gap-2">
@@ -108,6 +123,7 @@ const MessageList = () => {
 
         {/* Scrollable Chat Area */}
         <div
+          ref={messagesEndRef}
           className="flex-1 w-full  
              p-3 flex flex-col-reverse gap-2 overflow-y-auto"
         >

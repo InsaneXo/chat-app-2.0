@@ -98,15 +98,6 @@ const showMessageList = async (req: Request, res: Response) => {
                 $match: { chatId: new mongoose.Types.ObjectId(chatId) }
             },
             {
-                $sort: { createdAt: 1 } 
-            },
-            // {
-            //     $skip: skip 
-            // },
-            // {
-            //     $limit: limit 
-            // },
-            {
                 $project: {
                     _id: 1,
                     sender: 1,
@@ -115,7 +106,16 @@ const showMessageList = async (req: Request, res: Response) => {
                     seenBy: 1,
                     createdAt: 1
                 }
-            }
+            },
+            {
+                $sort: { createdAt: 1 }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            },
         ])
 
 
