@@ -4,10 +4,9 @@ import { friendRequestHandler, friendRequestList, searchUsers, sendFriendRequest
 const userRouter = express.Router()
 
 userRouter.get('/friend-request', friendRequestList)
-// ?page=1&limit=5
 userRouter.post("/friend-request", sendFriendRequest)
-userRouter.put("/friend-request", friendRequestHandler)
 
+userRouter.put("/friend-request", friendRequestHandler)
 userRouter.get('/search', searchUsers)
 
 export default userRouter

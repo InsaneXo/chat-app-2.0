@@ -43,5 +43,16 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction): 
     res.status(500).json({ message: "Something went wrong." });
   }
 };
+// const socketMiddleware = async (err:any, socket:any, next:any)=>{
+//   try {
+//     if(err) return next(err);
 
-export default authMiddleware;
+//     const authToken = socket.headers['token']
+
+    
+//   } catch (error) {
+    
+//   }
+// }
+
+export {authMiddleware}

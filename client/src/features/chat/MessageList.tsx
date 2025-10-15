@@ -3,8 +3,10 @@ import MessageItem from '../../components/MessageItem'
 import { useToast } from '../../context/ToastMessageProvider'
 import axios from 'axios'
 import { useStore } from '../../context/StoreProvider'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useInfiniteScroll from '../../hooks/UseInfiniteScroll'
+import { useSocket } from '../../context/SocketProvider'
+import { UseSocketEvents } from '../../hooks/UseSocketEvents'
 
 interface messageType {
   body: string,
@@ -22,14 +24,19 @@ interface messageListType {
 
 const MessageList = () => {
   const { store, selectedChatDetails } = useStore()
+  const socket = useSocket()
+
+
   const { setToast } = useToast()
   const [content, setContent] = useState<messageType>({
     body: "",
     type: ""
   })
+
   const [messageList, setMessageList] = useState<messageListType[]>([])
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
+
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -57,16 +64,15 @@ const MessageList = () => {
       })
 
       chatEndRef.current?.scrollIntoView({ behavior: 'instant' })
-      setMessageList((prev = []) => [tempMessage, ...prev ])
+      setMessageList((prev = []) => [tempMessage, ...prev])
       setContent({
         body: "",
         type: ""
       })
-
+      socket?.emit("SEND_MESSAGE", {chatId: selectedChatDetails._id, message: tempMessage,})
     } catch (error: any) {
       if (error) {
         setToast({ status: "Error", message: error.response.data.message })
-        // Optionally remove the optimistic message on error
         setMessageList((prev) => prev.filter(msg => msg._id !== Date.now().toString()))
       }
     }
@@ -74,7 +80,6 @@ const MessageList = () => {
 
   const loadMoreMessages = async () => {
     if (!selectedChatDetails._id) return;
-
     try {
       const { data } = await axios({
         url: `/api/chat/message`,
@@ -89,21 +94,19 @@ const MessageList = () => {
       const newMessages: messageListType[] = data.messages || []
 
       if (isInitialLoad) {
-        // First load - replace messages
         setMessageList(newMessages)
         setIsInitialLoad(false)
-        // Scroll to bottom after initial load
+
         setTimeout(() => {
           chatEndRef.current?.scrollIntoView({ behavior: 'instant' })
         }, 100)
+        setPage(prev => prev + 1)
       } else {
-        // Load more - prepend older messages
         setMessageList((prev) => [...prev, ...newMessages])
       }
 
       setPage(prev => prev + 1)
 
-      // Check if there are more messages
       if (newMessages.length === 0 || page >= data.totalPages) {
         setHasMore(false)
       }
@@ -118,13 +121,25 @@ const MessageList = () => {
   const { containerRef, loading } = useInfiniteScroll({
     loadMore: loadMoreMessages,
     hasMore,
-    threshold: 50
   });
 
-  // Reset and load messages when chat changes
+  const newMessagesListener = useCallback(
+    (data:any) => {
+      if (data.chatId !== selectedChatDetails._id) return;
+
+      setMessageList((prev) => [...prev, data.message]);
+    },
+    [selectedChatDetails._id]
+  );
+
+  const eventHandler = {
+    ["NEW_MESSAGE"]: newMessagesListener,
+  };
+
+  UseSocketEvents(socket, eventHandler)
+
   useEffect(() => {
     if (!selectedChatDetails._id) return
-
 
     setMessageList([])
     setPage(0)
@@ -160,23 +175,22 @@ const MessageList = () => {
             </div>
           </div>
 
-          {/* Scrollable Chat Area */}
           <div
             ref={containerRef}
             className="flex-1 w-full p-3 flex flex-col-reverse gap-2 overflow-auto"
           >
             <div ref={chatEndRef} />
 
-            {messageList?.map((item,index) => (
+            {messageList?.map((item, index) => (
               <MessageItem
                 key={index}
                 message={item.content}
                 isSender={item.sender === store.userId}
                 isRead={true}
-              time={new Date(item.createdAt).toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
+                time={new Date(item.createdAt).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               />
             ))}
 

@@ -3,25 +3,26 @@ import { useState, useEffect, useRef, useCallback } from "react";
 interface UseInfiniteChatScrollTypes {
   loadMore: () => Promise<void>;
   hasMore?: boolean;
-  threshold?: number; // how close to the top before loading
 }
 
 const useInfiniteScroll = ({
   loadMore,
   hasMore = true,
-  threshold = 100,
 }: UseInfiniteChatScrollTypes) => {
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const prevScrollHeight = useRef(0);
+  // const prevScrollHeight = useRef(0);
 
   const handleScroll = useCallback(async () => {
     const container = containerRef.current;
+    
+
     if (!container || loading || !hasMore) return;
 
-    if (container.scrollTop <= threshold) {
+    if (container.clientHeight + Math.abs(container?.scrollTop) + 1 >=
+      container?.scrollHeight) {
       setLoading(true);
-      prevScrollHeight.current = container.scrollHeight;
+      // prevScrollHeight.current = container.scrollHeight;
 
       try {
         await loadMore();
@@ -34,7 +35,7 @@ const useInfiniteScroll = ({
         // });
       }
     }
-  }, [loading, hasMore, loadMore, threshold]);
+  }, [loading, hasMore, loadMore]);
 
   useEffect(() => {
     const container = containerRef.current;

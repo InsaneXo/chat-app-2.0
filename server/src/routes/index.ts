@@ -1,6 +1,6 @@
 import express from "express"
 import authRouter from "./auth.routes"
-import authMiddleware from "../middlewares/auth.middleware"
+import {authMiddleware} from "../middlewares/auth.middleware"
 import userRouter from "./user.routes"
 import chatRouter from "./chat.routes"
 
