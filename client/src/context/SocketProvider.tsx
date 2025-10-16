@@ -31,11 +31,18 @@ interface SocketProviderProps {
 
 
 
+
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
+  const token = localStorage.getItem('token')
+
+  if(!token) return
+  
   const socket = useMemo<AppSocket>(
     () =>
       io(import.meta.env.VITE_API_URL, {
-        withCredentials: true,
+        auth: {
+          token: token,
+        },
       }),
     []
   );

@@ -8,14 +8,24 @@ import { Server } from "socket.io"
 import { createServer } from "http";
 import router from "./routes/index"
 import { corsOptions } from "./config/constant/config"
+import { socketMiddleware } from "./middlewares/auth.middleware"
+import ErrorHandler from "./utils/helper"
+import { sendNewMessage } from "./sockets/socketEvents"
 
 const app = express()
 const server = createServer(app);
 const PORT = 3001
 
+export const userSocketIDs = new Map();
+const onlineUsers = new Set();
+
 const io = new Server(server, {
     cors: corsOptions
 })
+
+
+app.set("io", io);
+
 
 
 app.use(cors(corsOptions))
@@ -27,13 +37,25 @@ app.get("/", (req, res) => {
     res.send("Hello World");
 });
 
+io.use(async (socket, next) => {
+    const token = socket.handshake.auth.token
+    if (!token) {
+        return next(new ErrorHandler("Please login to access this route", 401));
+    }
+    await socketMiddleware(socket, next)
+})
 
-io.on("connection", (socket) => {
+
+io.on("connection", (socket: any) => {
     console.log("User is connected to socket")
 
-    socket.on("sendMessage", (data) => {
-        console.log(data)
+    const user = socket.userId;
+    userSocketIDs.set(user.toString(), socket.id);
+
+    socket.on('SEND_MESSAGE', async ({ chatId, content }: any, callBack: any) => {
+        sendNewMessage({ io, socket, callBack, chatId, content })
     })
+
 
     socket.on("disconnect", () => {
         console.log("User is disconnected to socket")

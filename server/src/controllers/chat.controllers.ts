@@ -7,6 +7,9 @@ const showChatList = async (req: Request, res: Response) => {
     try {
 
         const userId = new mongoose.Types.ObjectId(req.userId);
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10
+        const skip = (page - 1) * limit
         const chatList = await chat.aggregate([
             {
                 $match: {
@@ -43,10 +46,20 @@ const showChatList = async (req: Request, res: Response) => {
                     "user.avatarUrl": 1,
                     "user.status": 1
                 }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
             }
         ]);
 
-        return res.status(200).json({ chats: chatList })
+        const totalCount = await chat.countDocuments({
+            participants: userId
+        })
+
+        return res.status(200).json({ chats: chatList, currentPage: page, totalPages: Math.ceil(totalCount / limit) })
 
     } catch (error) {
         console.log("Show Chat List Controller : ", error)
@@ -126,7 +139,6 @@ const showMessageList = async (req: Request, res: Response) => {
         return res.status(200).json({
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit),
-            totalCount,
             messages
         })
 

@@ -45,35 +45,15 @@ const MessageList = () => {
     if (!content.body.trim()) return;
 
     try {
-      const tempMessage: messageListType = {
-        _id: Date.now().toString(),
-        sender: store.userId,
-        content: content.body,
-        messageType: content.type || "text",
-        createdAt: new Date().toISOString(),
-        seenBy: [],
-      }
-
-      await axios({
-        url: "/api/chat/message",
-        method: "POST",
-        data: {
-          chatId: selectedChatDetails._id,
-          content
-        }
-      })
-
       chatEndRef.current?.scrollIntoView({ behavior: 'instant' })
-      setMessageList((prev = []) => [tempMessage, ...prev])
       setContent({
         body: "",
         type: ""
       })
-      socket?.emit("SEND_MESSAGE", {chatId: selectedChatDetails._id, message: tempMessage,})
+      socket?.emit("SEND_MESSAGE", { chatId: selectedChatDetails._id, content })
     } catch (error: any) {
       if (error) {
         setToast({ status: "Error", message: error.response.data.message })
-        setMessageList((prev) => prev.filter(msg => msg._id !== Date.now().toString()))
       }
     }
   }
@@ -124,16 +104,15 @@ const MessageList = () => {
   });
 
   const newMessagesListener = useCallback(
-    (data:any) => {
+    (data: any) => {
       if (data.chatId !== selectedChatDetails._id) return;
-
-      setMessageList((prev) => [...prev, data.message]);
+      setMessageList((prev) => [data.message, ...prev]);
     },
     [selectedChatDetails._id]
   );
 
   const eventHandler = {
-    ["NEW_MESSAGE"]: newMessagesListener,
+    ["MESSAGE"]: newMessagesListener,
   };
 
   UseSocketEvents(socket, eventHandler)

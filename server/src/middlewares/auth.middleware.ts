@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { decodedJWTToken } from "../utils/helper";
+import ErrorHandler, { decodedJWTToken } from "../utils/helper";
 import user from "../models/user";
 import { JwtPayload } from "jsonwebtoken";
 
@@ -43,16 +43,33 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction): 
     res.status(500).json({ message: "Something went wrong." });
   }
 };
-// const socketMiddleware = async (err:any, socket:any, next:any)=>{
-//   try {
-//     if(err) return next(err);
+const socketMiddleware = async (socket: any, next: any) => {
+  try {
 
-//     const authToken = socket.headers['token']
+    const token = socket.handshake.auth.token
 
-    
-//   } catch (error) {
-    
-//   }
-// }
+    if (!token) {
+      return next(new ErrorHandler("Please login to access this route", 401));
+    }
 
-export {authMiddleware}
+    const decodedToken = decodedJWTToken(token) as JwtPayload | null;
+
+    if (!decodedToken) {
+      return next(new ErrorHandler("Session expired. Please log in again.", 401))
+    }
+
+    const userFind = await user.findOne({ "sessions.loginUser": decodedToken.sessionId });
+
+    if (!userFind) {
+      return next(new ErrorHandler("Invalid or expired session. Please log in again.", 401))
+    }
+
+    socket.userId = userFind._id
+
+    return next();
+  } catch (error) {
+    return next(new ErrorHandler("Please login to access this route", 401));
+  }
+}
+
+export { authMiddleware, socketMiddleware }

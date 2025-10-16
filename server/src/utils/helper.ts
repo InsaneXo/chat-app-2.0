@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt"
 import { Response } from "express";
 import jwt from "jsonwebtoken"
+import { userSocketIDs } from "../server";
 
 // Password Hashing Feature. 
 
@@ -49,7 +50,31 @@ const checkType = (type : string, res:Response) => {
     }
 }
 
+ const getSockets = (users = []) => {
+  const sockets = users.map((user:string) => userSocketIDs.get(user.toString()));
+
+  return sockets;
+};
+
+class ErrorHandler extends Error {
+  public statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+
+    // Restore prototype chain (important for instanceof checks)
+    Object.setPrototypeOf(this, ErrorHandler.prototype);
+
+    // Capture the stack trace (optional, but helpful)
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+export default ErrorHandler;
 
 
 
-export { hashingPassword, decryptPassword, generateSixDigitCode, JWTTokenGenreted, generateRandomString, decodedJWTToken, checkType }
+
+
+export { hashingPassword, decryptPassword, generateSixDigitCode, JWTTokenGenreted, generateRandomString, decodedJWTToken, checkType, ErrorHandler, getSockets }
