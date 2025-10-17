@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import friendRequest from "../models/friendRequest";
 import user from "../models/user";
 import chat from "../models/chat";
+import { emitEvent } from "../utils/helper";
 
 const sendFriendRequest = async (req: Request, res: Response) => {
     try {
@@ -27,6 +28,8 @@ const sendFriendRequest = async (req: Request, res: Response) => {
             receiver: receiverId,
             sender: req.userId
         })
+
+        emitEvent(req, "SEND_REQUEST", [receiverId], "hello")
 
         return res.status(201).json({ message: "Friend Request Sent Successfuly" })
     } catch (error) {

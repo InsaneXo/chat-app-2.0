@@ -98,7 +98,7 @@ const Friends = () => {
 
     return (
         <div className="flex-1 flex">
-            <div className="h-full flex flex-col bg-white w-[700px] border-r-[2px] border-gray-200 p-1">
+            <div className="h-full flex flex-col bg-white w-[50%] border-r-[2px] border-gray-200 p-1">
                 <div className='flex items-center justify-between'>
                     <h1 className='font-semibold my-5 text-[#29D369]'>ConnectWave</h1>
                     <div className='flex items-center gap-1'>

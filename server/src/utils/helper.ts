@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt"
-import { Response } from "express";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken"
 import { userSocketIDs } from "../server";
 
@@ -20,7 +20,7 @@ const generateSixDigitCode = (): number => {
     return Math.floor(100000 + Math.random() * 900000);
 }
 
-const JWTTokenGenreted = (payload: string, time:any = "14d") => {
+const JWTTokenGenreted = (payload: string, time: any = "14d") => {
     return jwt.sign({ sessionId: payload }, process.env.JWT_SECRET as string, { expiresIn: time })
 }
 
@@ -38,7 +38,7 @@ const generateRandomString = (length: number = 10): string => {
     return result;
 };
 
-const checkType = (type : string, res:Response) => {
+const checkType = (type: string, res: Response) => {
     if (type === "login") {
         return "sessions.loginUser"
     }
@@ -46,29 +46,35 @@ const checkType = (type : string, res:Response) => {
         return "sessions.forgetPassword"
     }
     else {
-        return res.status(400).json({message: "Invaild type"})
+        return res.status(400).json({ message: "Invaild type" })
     }
 }
 
- const getSockets = (users = []) => {
-  const sockets = users.map((user:string) => userSocketIDs.get(user.toString()));
+const getSockets = (users = []) => {
+    const sockets = users.map((user: string) => userSocketIDs.get(user.toString()));
 
-  return sockets;
+    return sockets;
+};
+
+const emitEvent = (req:Request, event:string, users:any, data:any) => {
+  const io = req.app.get("io");
+  const usersSocket = getSockets(users);
+  io.to(usersSocket).emit(event, data);
 };
 
 class ErrorHandler extends Error {
-  public statusCode: number;
+    public statusCode: number;
 
-  constructor(message: string, statusCode: number) {
-    super(message);
-    this.statusCode = statusCode;
+    constructor(message: string, statusCode: number) {
+        super(message);
+        this.statusCode = statusCode;
 
-    // Restore prototype chain (important for instanceof checks)
-    Object.setPrototypeOf(this, ErrorHandler.prototype);
+        // Restore prototype chain (important for instanceof checks)
+        Object.setPrototypeOf(this, ErrorHandler.prototype);
 
-    // Capture the stack trace (optional, but helpful)
-    Error.captureStackTrace(this, this.constructor);
-  }
+        // Capture the stack trace (optional, but helpful)
+        Error.captureStackTrace(this, this.constructor);
+    }
 }
 
 export default ErrorHandler;
@@ -77,4 +83,4 @@ export default ErrorHandler;
 
 
 
-export { hashingPassword, decryptPassword, generateSixDigitCode, JWTTokenGenreted, generateRandomString, decodedJWTToken, checkType, ErrorHandler, getSockets }
+export { hashingPassword, decryptPassword, generateSixDigitCode, JWTTokenGenreted, generateRandomString, decodedJWTToken, checkType, ErrorHandler, getSockets, emitEvent }

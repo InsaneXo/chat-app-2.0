@@ -1,39 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
+import { useSocket } from '../../context/SocketProvider'
+import { UseSocketEvents } from '../../hooks/UseSocketEvents'
 import ChatList from './ChatList'
 import MessageList from './MessageList'
-import axios from 'axios';
-import { useToast } from '../../context/ToastMessageProvider';
-import type { ChatListTypes } from '../../types/component';
-
+import { useStore } from '../../context/StoreProvider'
 
 
 
 const ChatWindow = () => {
-  const [chatList, setChatList] = useState<ChatListTypes[]>([])
-  const { setToast } = useToast()
+  const socket = useSocket()
+  const { store,} = useStore()
 
+  const sendRequestListener = useCallback((data:any)=>{
+    if(!store.userId) return
+    console.log(data, )
+  },[store.userId])
 
-  const fetchChatList = async () => {
-    try {
-      const { data } = await axios({
-        url: "/api/chat",
-        method: "GET",
-      })
-      setChatList(data.chats)
-    } catch (error: any) {
-      if (error) {
-        setToast({ status: "Error", message: error.response.data.message })
-      }
-    }
-  }
+  const socketListenersocketListener = {
+    ["SEND_REQUEST"]: sendRequestListener,
+  };
 
-  useEffect(() => {
-    fetchChatList()
-  }, [])
+  UseSocketEvents(socket, socketListenersocketListener)
 
   return (
     <div className='flex-1 flex'>
-      <ChatList chatList={chatList} />
+      <ChatList />
       <MessageList />
     </div>
   )
