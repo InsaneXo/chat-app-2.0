@@ -22,7 +22,7 @@ const ChatList = () => {
                 method: "GET",
                 params: {
                     page,
-                    limit: 10
+                    limit: 18
                 }
             })
 

@@ -24,12 +24,24 @@ const sendFriendRequest = async (req: Request, res: Response) => {
             return res.status(200).json({ message: "Friend Request already sent" })
         }
 
-        await friendRequest.create({
+        const friendRequestData = await friendRequest.create({
             receiver: receiverId,
             sender: req.userId
         })
 
-        emitEvent(req, "SEND_REQUEST", [receiverId], "hello")
+        const populatedRequest:any = await friendRequestData.populate({
+            path: "sender",
+            select: "_id name email avatarUrl"
+        });
+        const realTimeData = {
+            _id: populatedRequest._id.toString(),
+            senderId: populatedRequest.sender._id.toString(),
+            avatar: populatedRequest.sender.avatarUrl,
+            name: populatedRequest.sender.name,
+            email: populatedRequest.sender.email
+        }
+
+        emitEvent(req, "SEND_REQUEST", [receiverId], realTimeData)
 
         return res.status(201).json({ message: "Friend Request Sent Successfuly" })
     } catch (error) {
@@ -64,6 +76,7 @@ const friendRequestList = async (req: Request, res: Response) => {
                 $project: {
                     _id: 1,
                     senderId: "$senderDetails._id",
+                    avatar: "$senderDetails.avatarUrl",
                     name: "$senderDetails.name",
                     email: "$senderDetails.email",
                 }
@@ -211,10 +224,12 @@ const friendRequestHandler = async (req: Request, res: Response) => {
             await friendRequest.deleteOne({ _id: requestId })
         }
         else {
+            const userFind = await user.findById(isReqestIdExist.receiver) 
             await friendRequest.updateOne({ _id: requestId }, { $set: { status: type } })
             await chat.create({
                 participants: [isReqestIdExist.sender, isReqestIdExist.receiver]
             })
+            emitEvent(req, "REQUEST_HANDLER", [isReqestIdExist.sender], {message: `${userFind?.name} accepted your request — start chatting!`})
         }
 
 

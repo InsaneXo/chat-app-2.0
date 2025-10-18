@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
 const UseSocketEvents = (socket:any, handlers:any) => {
-  console.log(socket, handlers)
   useEffect(() => {
     Object.entries(handlers).forEach(([event, handler]) => {
       socket.on(event, handler);

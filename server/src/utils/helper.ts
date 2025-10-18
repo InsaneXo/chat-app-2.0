@@ -56,10 +56,10 @@ const getSockets = (users = []) => {
     return sockets;
 };
 
-const emitEvent = (req:Request, event:string, users:any, data:any) => {
-  const io = req.app.get("io");
-  const usersSocket = getSockets(users);
-  io.to(usersSocket).emit(event, data);
+const emitEvent = (req: Request, event: string, users: any, data: any) => {
+    const io = req.app.get("io");
+    const usersSocket = getSockets(users);
+    io.to(usersSocket).emit(event, data);
 };
 
 class ErrorHandler extends Error {

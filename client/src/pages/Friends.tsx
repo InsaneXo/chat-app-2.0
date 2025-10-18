@@ -4,9 +4,11 @@ import { CustomSearchBar } from "../components/UI/CustomSearchBar"
 import { CustomUserItem } from "../components/UI/CustomUserItem"
 import useSearch from "../hooks/UseSearch"
 import { useToast } from "../context/ToastMessageProvider"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useStore } from "../context/StoreProvider"
 import { useNavigate, useNavigation } from "react-router-dom"
+import { UseSocketEvents } from "../hooks/UseSocketEvents"
+import { useSocket } from "../context/SocketProvider"
 
 
 
@@ -14,14 +16,17 @@ interface setFriendRequestsType {
     _id: string;
     name: string;
     email: string;
-    requestId:string
+    requestId: string
 }
 
 const Friends = () => {
     const { query, setQuery, results, setResults, loading, error } = useSearch("/api/user/search")
     const { setToast } = useToast()
-    const { store } = useStore()
+
+    const { store,  setNotification } = useStore()
     const [friendRequests, setFriendRequests] = useState<setFriendRequestsType[]>([])
+
+    const socket = useSocket()
 
     const fetchFriendRequests = async () => {
         try {
@@ -54,7 +59,7 @@ const Friends = () => {
 
     const sendFriendRequestHandler = async (id: string) => {
         try {
-            const { data } = await axios.post("/api/user/friend-request", {receiverId: id })
+            const { data } = await axios.post("/api/user/friend-request", { receiverId: id })
             setResults((prev) => prev.map((item) => item._id === id ? { ...item, status: "pending" } : item))
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
@@ -79,6 +84,10 @@ const Friends = () => {
             } else {
                 setFriendRequests((prev) => prev.filter((item) => item._id !== id))
             }
+            setNotification(prev => ({
+            ...prev,
+            friendRequest: prev.friendRequest - 1
+        }))
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {
@@ -88,13 +97,26 @@ const Friends = () => {
     }
     const displayList = query ? results : friendRequests
 
+     const sendRequestListener = useCallback((data: any) => {
+            if (!store.userId) return
+            console.log(data, "data")
+            setFriendRequests(prev => [...prev, data])
+        }, [store.userId]) 
+
+    const socketListener = {
+        ["SEND_REQUEST"]: sendRequestListener,
+    };
+
+    UseSocketEvents(socket, socketListener)
+    useEffect(() => {
+        fetchFriendRequests()
+    }, [])
+
+
 
     if (error) setToast({ status: "Error", message: error })
 
 
-    useEffect(() => {
-        fetchFriendRequests()
-    }, [])
 
     return (
         <div className="flex-1 flex">

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import user from "../models/user";
 import { decodedJWTToken, decryptPassword, generateRandomString, generateSixDigitCode, hashingPassword, JWTTokenGenreted } from "../utils/helper";
 import sendMail from "../services/smtp.services";
+import friendRequest from "../models/friendRequest";
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -237,7 +238,13 @@ const session = async (req: Request, res: Response) => {
     try {
         const { userId, email } = req
 
-        return res.status(200).json({userId, email})
+        const friendRequestList = await friendRequest.countDocuments({receiver: userId, status: "pending"}) 
+
+        const countList = {
+            friendRequest : friendRequestList
+        }
+
+        return res.status(200).json({userId, email, user : countList})
     } catch (error) {
         console.log("Session Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })

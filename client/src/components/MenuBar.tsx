@@ -1,8 +1,10 @@
 import { Link, useLocation } from 'react-router-dom'
 import CustomIcon from './UI/CustomIcon'
+import { useStore } from '../context/StoreProvider';
 
 const MenuBar = () => {
   const location = useLocation();
+  const { notification } = useStore()
 
   const getLinkClasses = (path: string) => {
     const isActive = location.pathname === path;
@@ -24,8 +26,11 @@ const MenuBar = () => {
           <CustomIcon name='majesticons:chat-status' />
         </Link>
 
-         <Link to="/friends" className={getLinkClasses('/friends')}>
+        <Link to="/friends" className={getLinkClasses('/friends')}>
           <CustomIcon name='fa7-solid:user-friends' />
+          {notification.friendRequest > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px] absolute right-0 top-[-4px] border-2 border-[#F7F5F3]'>
+            {notification.friendRequest}
+          </div>}
         </Link>
       </div>
 

@@ -12,11 +12,17 @@ interface seletedChatDetailsType {
   name: string
 }
 
+interface notificationType {
+  friendRequest:number,
+}
+
 interface StoreContextType {
   store: StoreType;
   setStore: React.Dispatch<React.SetStateAction<StoreType>>;
   selectedChatDetails: seletedChatDetailsType
   setSelectedChatDetails: React.Dispatch<React.SetStateAction<seletedChatDetailsType>>;
+  notification: notificationType
+  setNotification: React.Dispatch<React.SetStateAction<notificationType>>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -45,8 +51,13 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
     name: ""
   })
 
+  const [notification, setNotification] = useState<notificationType>({
+    friendRequest: 0,
+  })
+
+
   return (
-    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails }}>
+    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails, notification, setNotification }}>
       {children}
     </StoreContext.Provider>
   );

@@ -7,7 +7,7 @@ import axios from 'axios'
 import { useToast } from '../context/ToastMessageProvider'
 
 const Router = () => {
-    const { store, setStore } = useStore()
+    const { store, setStore, setNotification } = useStore()
     const { setToast } = useToast()
 
     const verifySession = async () => {
@@ -23,6 +23,10 @@ const Router = () => {
                 isAuthenticate: true,
                 userEmail: data.email,
                 userId: data.userId
+            })
+
+            setNotification({
+                friendRequest: data.user.friendRequest
             })
 
         } catch (error: any) {
