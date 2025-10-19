@@ -57,7 +57,7 @@ export interface CustomToastMessageProps {
 }
 
 export interface UserType {
-  userId: string;
+  _id: string;
   name: string;
   email: string;
   avatar: string;

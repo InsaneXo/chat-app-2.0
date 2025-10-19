@@ -1,3 +1,4 @@
+
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import friendRequest from "../models/friendRequest";
@@ -226,10 +227,27 @@ const friendRequestHandler = async (req: Request, res: Response) => {
         else {
             const userFind = await user.findById(isReqestIdExist.receiver) 
             await friendRequest.updateOne({ _id: requestId }, { $set: { status: type } })
-            await chat.create({
+           const chatInfo = await chat.create({
                 participants: [isReqestIdExist.sender, isReqestIdExist.receiver]
             })
-            emitEvent(req, "REQUEST_HANDLER", [isReqestIdExist.sender], {message: `${userFind?.name} accepted your request — start chatting!`})
+
+            const chatRoomDetails:any = await chatInfo.populate({
+            path: "participants",
+            select: "_id name email avatarUrl, status"
+        })
+
+            const realTimeData = {
+                _id: chatInfo._id,
+                user: {
+                    _id: chatRoomDetails.participants[1]._id,
+                    name: chatRoomDetails.participants[1].name,
+                    email: chatRoomDetails.participants[1].email,
+                    avatarUrl: chatRoomDetails.participants[1].avatarUrl,
+                    status: chatRoomDetails.participants[1].status
+                }
+            }
+
+            emitEvent(req, "REQUEST_HANDLER", [isReqestIdExist.sender],{realTimeData, message: `${userFind?.name} accepted your request — start chatting!`})
         }
 
 

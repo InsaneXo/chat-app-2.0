@@ -10,7 +10,7 @@ import router from "./routes/index"
 import { corsOptions } from "./config/constant/config"
 import { socketMiddleware } from "./middlewares/auth.middleware"
 import ErrorHandler from "./utils/helper"
-import { sendNewMessage } from "./sockets/socketEvents"
+import { seenMessage, sendNewMessage } from "./sockets/socketEvents"
 
 const app = express()
 const server = createServer(app);
@@ -51,10 +51,16 @@ io.on("connection", (socket: any) => {
 
     const user = socket.userId;
     userSocketIDs.set(user.toString(), socket.id);
+    console.log(socket.id, "socket")
 
-    socket.on('SEND_MESSAGE', async ({ chatId, content }: any, callBack: any) => {
-        sendNewMessage({ io, socket, callBack, chatId, content })
+    socket.on('SEND_MESSAGE', async ({ chatId, content }: any, callback?: any) => {
+        sendNewMessage({ io, socket, callback, chatId, content })
     })
+
+    socket.on('SEEN_MESSAGE', async ({ messageId, users }: any, callback?: any) => {
+        seenMessage({io, socket, messageId,callback, users})
+    })
+
 
 
     socket.on("disconnect", () => {

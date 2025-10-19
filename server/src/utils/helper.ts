@@ -50,7 +50,7 @@ const checkType = (type: string, res: Response) => {
     }
 }
 
-const getSockets = (users = []) => {
+const getSockets = (users:string[] = []) => {
     const sockets = users.map((user: string) => userSocketIDs.get(user.toString()));
 
     return sockets;

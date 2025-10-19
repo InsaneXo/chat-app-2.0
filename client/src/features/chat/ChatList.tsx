@@ -1,16 +1,21 @@
 import CustomIcon from '../../components/UI/CustomIcon'
 import { CustomSearchBar } from '../../components/UI/CustomSearchBar'
 import ChatItem from '../../components/UI/CustomChatItem'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useToast } from '../../context/ToastMessageProvider'
 import useInfiniteScroll from '../../hooks/UseInfiniteScroll'
 import axios from 'axios'
 import type { ChatListTypes } from '../../types/component'
+import { useSocket } from '../../context/SocketProvider'
+import { UseSocketEvents } from '../../hooks/UseSocketEvents'
+import { useStore } from '../../context/StoreProvider'
 
 
 const ChatList = () => {
     const [chatList, setChatList] = useState<ChatListTypes[]>([])
+    const socket = useSocket()
     const { setToast } = useToast()
+    const {store} = useStore()
     const [hasMore, setHasMore] = useState<boolean>(false)
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1)
@@ -50,7 +55,18 @@ const ChatList = () => {
 
 
     const { containerRef, loading } = useInfiniteScroll({ loadMore: fetchChatList, hasMore })
+    
+   const requestHandlerListener = useCallback((data:any) => {
+        if (!store.userId) return
+        setChatList((prev) => [...prev, data.realTimeData])
+    }, [store.userId])
 
+    const socketListener = {
+        ["REQUEST_HANDLER"]: requestHandlerListener,
+    };
+
+
+    UseSocketEvents(socket, socketListener)
 
     useEffect(() => {
         fetchChatList()
@@ -74,7 +90,7 @@ const ChatList = () => {
                 <div className='w-fit p-1 rounded-lg bg-[#F6F5F4] hover:bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer '>Groups</div>
             </div>
             <div ref={containerRef} className='flex-1 w-full overflow-auto'>
-                {chatList.map((item) => <ChatItem key={item._id} _id={item._id} name={item.user.name} />)}
+                {chatList.map((item) => <ChatItem key={item._id} _id={item._id} userId={item.user._id} name={item.user.name} />)}
                 {loading && (
                     <div className="flex justify-center py-4">
                         <div className="bg-white rounded-lg px-4 py-2 shadow-md flex items-center space-x-2">

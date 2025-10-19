@@ -40,7 +40,7 @@ const AppLayout = () => {
             <MenuBar />
             <Routes>
                 <Route path='/' element={<Navigate to={'/chats'} replace />} />
-                <Route path='/chats' element={<ChatWindow />} index />
+                <Route path='/chats' element={<ChatWindow />}  />
                 <Route path='/status' element={<StatusWindow />} />
                 <Route path='/friends' element={<Friends />} />
                 <Route path='/settings' element={<Settings />} />

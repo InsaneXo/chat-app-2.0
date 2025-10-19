@@ -24,7 +24,7 @@ const Router = () => {
                 userEmail: data.email,
                 userId: data.userId
             })
-
+            
             setNotification({
                 friendRequest: data.user.friendRequest
             })

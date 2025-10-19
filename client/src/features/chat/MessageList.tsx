@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import useInfiniteScroll from '../../hooks/UseInfiniteScroll'
 import { useSocket } from '../../context/SocketProvider'
 import { UseSocketEvents } from '../../hooks/UseSocketEvents'
+import { data } from 'react-router-dom'
 
 interface messageType {
   body: string,
@@ -18,7 +19,7 @@ interface messageListType {
   sender: string;
   content: string;
   messageType: string;
-  seenBy: [];
+  seenBy: string[];
   createdAt: string;
 }
 
@@ -107,12 +108,47 @@ const MessageList = () => {
     (data: any) => {
       if (data.chatId !== selectedChatDetails._id) return;
       setMessageList((prev) => [data.message, ...prev]);
+      if (data.message.sender === store.userId) return
+      socket?.emit("SEEN_MESSAGE", { messageId: [data.message._id], users: store.userId })
+      setMessageList((prev) =>
+        prev.map((msg) =>
+          msg._id === data.message._id
+            ? { ...msg, seenBy: [...new Set([...(msg.seenBy || []), store.userId])] }
+            : msg
+        )
+      );
     },
     [selectedChatDetails._id]
   );
 
+  const markAsReadListener = useCallback((data: any) => {
+    console.log(data, "Data mark")
+    //  if (data.chatId !== selectedChatDetails._id) return;
+    setMessageList((prev) =>
+      prev.map((msg) => {
+        const isSeen = Array.isArray(data.messageId)
+          ? data.messageId.includes(msg._id)
+          : msg._id === data.messageId;
+
+        return isSeen
+          ? {
+            ...msg,
+            seenBy: msg.seenBy.includes(data.seenBy)
+              ? msg.seenBy
+              : [...msg.seenBy, data.seenBy],
+          }
+          : msg;
+      })
+    );
+
+  }, [selectedChatDetails._id])
+
+
+  console.log(messageList, "message List")
+
   const eventHandler = {
     ["MESSAGE"]: newMessagesListener,
+    ["SEEN_MESSAGE"]: markAsReadListener
   };
 
   UseSocketEvents(socket, eventHandler)
@@ -165,7 +201,7 @@ const MessageList = () => {
                 key={index}
                 message={item.content}
                 isSender={item.sender === store.userId}
-                isRead={true}
+                isRead={item.seenBy.length > 0 ? true : false}
                 time={new Date(item.createdAt).toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit'

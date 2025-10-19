@@ -13,6 +13,7 @@ interface ServerToClientEvents {
 
 interface ClientToServerEvents {
   SEND_MESSAGE: (data: any) => void;
+  SEEN_MESSAGE: (data:any) => void;
 }
 
 

@@ -7,6 +7,7 @@ import { useStore } from '../../context/StoreProvider';
 interface CustomChatItemProps {
     _id:string;
     avatar: string;
+    userId:string
     name: string;
     message: string;
     day: string;
@@ -14,7 +15,7 @@ interface CustomChatItemProps {
     onContextMenuData: ContextMenuDataProps[]
 }
 
-const CustomChatItem = ({ _id, avatar, name, message, day, unreadMessage, onContextMenuData }: CustomChatItemProps) => {
+const CustomChatItem = ({ _id, avatar, userId, name, message, day, unreadMessage, onContextMenuData }: CustomChatItemProps) => {
     const [position, setPosition] = useState<CustomContextMenuProps | null>(null);
     const { selectedChatDetails, setSelectedChatDetails } = useStore()
 
@@ -27,7 +28,7 @@ const CustomChatItem = ({ _id, avatar, name, message, day, unreadMessage, onCont
 
     return (
         <>
-            <div className={`h-20 w-full ${selectedChatDetails._id === _id && "bg-[#F6F5F4]"}  hover:bg-[#F6F5F4] rounded-lg px-2 flex items-center gap-2 mb-[2px] cursor-pointer relative`} onContextMenu={handleContextMenu} onClick={() => setSelectedChatDetails({_id, name, avatar})}>
+            <div className={`h-20 w-full ${selectedChatDetails._id === _id && "bg-[#F6F5F4]"}  hover:bg-[#F6F5F4] rounded-lg px-2 flex items-center gap-2 mb-[2px] cursor-pointer relative`} onContextMenu={handleContextMenu} onClick={() => setSelectedChatDetails({_id, userId, name, avatar})}>
                 <div className='h-14 w-14 flex items-center justify-center bg-green-300 text-white rounded-full'>
                     {avatar ? (
                         <img src={avatar} alt="user_avatar" className="h-full w-full object-cover" />

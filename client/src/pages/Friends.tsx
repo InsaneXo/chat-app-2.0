@@ -9,6 +9,7 @@ import { useStore } from "../context/StoreProvider"
 import { useNavigate, useNavigation } from "react-router-dom"
 import { UseSocketEvents } from "../hooks/UseSocketEvents"
 import { useSocket } from "../context/SocketProvider"
+import Loader from "../components/UI/Loader"
 
 
 
@@ -20,10 +21,11 @@ interface setFriendRequestsType {
 }
 
 const Friends = () => {
-    const { query, setQuery, results, setResults, loading, error } = useSearch("/api/user/search")
+    const { query, setQuery, results, setResults, loading: searchLoading, error } = useSearch("/api/user/search")
     const { setToast } = useToast()
+    const [loading, setLoading] = useState<boolean>(false)
 
-    const { store,  setNotification } = useStore()
+    const { store, setNotification } = useStore()
     const [friendRequests, setFriendRequests] = useState<setFriendRequestsType[]>([])
 
     const socket = useSocket()
@@ -58,6 +60,7 @@ const Friends = () => {
     }
 
     const sendFriendRequestHandler = async (id: string) => {
+        setLoading(true)
         try {
             const { data } = await axios.post("/api/user/friend-request", { receiverId: id })
             setResults((prev) => prev.map((item) => item._id === id ? { ...item, status: "pending" } : item))
@@ -66,6 +69,8 @@ const Friends = () => {
             if (error) {
                 setToast({ status: "Error", message: error.response.data.message })
             }
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -85,9 +90,9 @@ const Friends = () => {
                 setFriendRequests((prev) => prev.filter((item) => item._id !== id))
             }
             setNotification(prev => ({
-            ...prev,
-            friendRequest: prev.friendRequest - 1
-        }))
+                ...prev,
+                friendRequest: prev.friendRequest - 1
+            }))
             setToast({ status: "Success", message: data.message })
         } catch (error: any) {
             if (error) {
@@ -97,11 +102,10 @@ const Friends = () => {
     }
     const displayList = query ? results : friendRequests
 
-     const sendRequestListener = useCallback((data: any) => {
-            if (!store.userId) return
-            console.log(data, "data")
-            setFriendRequests(prev => [...prev, data])
-        }, [store.userId]) 
+    const sendRequestListener = useCallback((data: any) => {
+        if (!store.userId) return
+        setFriendRequests(prev => [...prev, data])
+    }, [store.userId])
 
     const socketListener = {
         ["SEND_REQUEST"]: sendRequestListener,
@@ -137,8 +141,8 @@ const Friends = () => {
                     </div>
                 </div>
 
-                <div className='flex-1 w-full overflow-auto'>
-                    {displayList.map((item) => (
+                <div className='flex-1 w-full justify-center overflow-auto'>
+                    {loading || searchLoading ? <Loader name={query ? "Loading Users..." : "Loading Friend Requests..."} /> : (displayList.map((item) => (
                         <CustomUserItem
                             key={item._id}
                             loginId={store.userId}
@@ -146,7 +150,16 @@ const Friends = () => {
                             user={item}
                             handler={requestHandler}
                         />
-                    ))}
+                    )))}
+
+                    {
+                        !displayList.length && <div className="flex justify-center py-4">
+                            <div className="bg-white rounded-lg px-4 py-2 shadow-md flex items-center space-x-2">
+                                <span className="text-gray-700">{query ? "No Users Found." : "There are no friend requests here."}</span>
+                            </div>
+                        </div>
+                    }
+
                 </div>
             </div>
 
