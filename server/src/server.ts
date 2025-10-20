@@ -10,7 +10,7 @@ import router from "./routes/index"
 import { corsOptions } from "./config/constant/config"
 import { socketMiddleware } from "./middlewares/auth.middleware"
 import ErrorHandler from "./utils/helper"
-import { seenMessage, sendNewMessage } from "./sockets/socketEvents"
+import { seenAllMessage, seenMessage, sendNewMessage } from "./sockets/socketEvents"
 
 const app = express()
 const server = createServer(app);
@@ -58,7 +58,11 @@ io.on("connection", (socket: any) => {
     })
 
     socket.on('SEEN_MESSAGE', async ({ messageId, users }: any, callback?: any) => {
-        seenMessage({io, socket, messageId,callback, users})
+        seenMessage({ io, messageId, callback, users })
+    })
+
+    socket.on('SEEN_ALL_MESSAGE', async ({ chatId, users }: any, callback?: any) => {
+        seenAllMessage({ io, chatId, users, callback })
     })
 
 

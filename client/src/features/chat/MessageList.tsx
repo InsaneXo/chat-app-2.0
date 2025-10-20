@@ -110,45 +110,33 @@ const MessageList = () => {
       setMessageList((prev) => [data.message, ...prev]);
       if (data.message.sender === store.userId) return
       socket?.emit("SEEN_MESSAGE", { messageId: [data.message._id], users: store.userId })
-      setMessageList((prev) =>
-        prev.map((msg) =>
-          msg._id === data.message._id
-            ? { ...msg, seenBy: [...new Set([...(msg.seenBy || []), store.userId])] }
-            : msg
-        )
-      );
     },
     [selectedChatDetails._id]
   );
 
   const markAsReadListener = useCallback((data: any) => {
-    console.log(data, "Data mark")
-    //  if (data.chatId !== selectedChatDetails._id) return;
+    if (data.chatId !== selectedChatDetails._id) return;
     setMessageList((prev) =>
-      prev.map((msg) => {
-        const isSeen = Array.isArray(data.messageId)
-          ? data.messageId.includes(msg._id)
-          : msg._id === data.messageId;
-
-        return isSeen
-          ? {
-            ...msg,
-            seenBy: msg.seenBy.includes(data.seenBy)
-              ? msg.seenBy
-              : [...msg.seenBy, data.seenBy],
-          }
-          : msg;
-      })
+      prev.map((msg) =>
+        msg._id === data.messageId
+          ? { ...msg, seenBy: [data.seenUser] }
+          : msg
+      )
     );
 
   }, [selectedChatDetails._id])
 
+  const seenAllMessagelistener = useCallback((data: any) => {
+    if (data.chatId !== selectedChatDetails._id) return;
+    console.log(data, "Seen All Message")
 
-  console.log(messageList, "message List")
+
+  }, [selectedChatDetails._id])
 
   const eventHandler = {
     ["MESSAGE"]: newMessagesListener,
-    ["SEEN_MESSAGE"]: markAsReadListener
+    ["SEEN_MESSAGE"]: markAsReadListener,
+    ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener
   };
 
   UseSocketEvents(socket, eventHandler)
@@ -162,6 +150,10 @@ const MessageList = () => {
     setIsInitialLoad(true)
 
     loadMoreMessages()
+  }, [selectedChatDetails._id])
+
+  useEffect(() => {
+    socket?.emit("SEEN_ALL_MESSAGE", { chatId: selectedChatDetails._id })
   }, [selectedChatDetails._id])
 
   return (

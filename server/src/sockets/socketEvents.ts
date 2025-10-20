@@ -25,17 +25,23 @@ interface newMessageTypes {
 
 interface seenMessageTypes {
     io: any;
-    socket: any;
     messageId: string[];
     users: string
-    callback:any
+    callback: any
+}
+
+interface seenAllMessageTypes {
+    io: any;
+    chatId: string;
+    users: string;
+    callback: any;
 }
 
 
 const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMessageTypes) => {
 
     try {
-        
+
         if (!chatId || !content) {
             console.log("HEllo")
             return callback?.({
@@ -88,9 +94,9 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
 
 }
 
-const seenMessage = async ({ io, socket, messageId, callback, users }: seenMessageTypes) => {
+const seenMessage = async ({ io, messageId, callback, users }: seenMessageTypes) => {
     try {
-        console.log(messageId,users,"DSSS")
+        console.log(messageId, users, "DSSS")
         if (!messageId) {
             return callback?.({
                 status: 400,
@@ -98,29 +104,36 @@ const seenMessage = async ({ io, socket, messageId, callback, users }: seenMessa
             })
         }
 
-         const messageIds = Array.isArray(messageId) ? messageId : [messageId];
+        const messageIds = Array.isArray(messageId) ? messageId : [messageId];
 
-        // Update all messages — add receiver to seenBy if not already there
-       await Promise.all(
+        const updatedDoc = await Promise.all(
             messageIds.map(async (id) => {
                 return await message.findByIdAndUpdate(
                     id,
                     { $addToSet: { seenBy: users } },
                     { new: true }
-                )
+                ).populate({
+                    path: "chatId",
+                    select: "participants"
+                })
             })
         );
 
-        console.log(socket.userId)
+        console.log(updatedDoc, "Dec")
 
-        const membersSocket = getSockets([socket.userId])
-        console.log(membersSocket, "Hello")
-         io.to(membersSocket).emit("SEEN_MESSAGE", {
-            messageId: messageId[0]
-        });
+        updatedDoc.forEach((item: any) => {
+            const membersSocket = getSockets(item?.chatId.participants)
+
+            io.to(membersSocket).emit("SEEN_MESSAGE", {
+                chatId: item?.chatId._id, messageId: item._id, seenUser: users
+            }
+            );
+        })
+
+
 
     } catch (error) {
-        console.log(error,"error")
+        console.log(error, "error")
         return callback?.({
             status: 500,
             message: "Something went wrong"
@@ -128,4 +141,54 @@ const seenMessage = async ({ io, socket, messageId, callback, users }: seenMessa
     }
 }
 
-export { sendNewMessage, seenMessage }
+const seenAllMessage = async ({ io, chatId, users, callback }: seenAllMessageTypes) => {
+    try {
+
+        if (!chatId) {
+            return callback?.({
+                status: 400,
+                message: "All Fields are Requried"
+            })
+        }
+
+        const unseenMessages = await message.find({ chatId, seenBy: [] }).populate({
+            path: "chatId",
+            select: "participants"
+        })
+
+        if (unseenMessages.length === 0) {
+            return callback?.({
+                status: 200,
+                message: "All messages already seen",
+            });
+        }
+
+        await message.updateMany(
+            { chatId, seenBy: [] },
+            { $addToSet: { seenBy: users } }
+        );
+
+        unseenMessages.forEach((item:any) => {
+            const membersSocket = getSockets(item?.chatId.participants)
+            io.to(membersSocket).emit("SEEN_ALL_MESSAGE", {
+                chatId: item?.chatId._id, messageId: item._id, senderId: item.sender, seenUser: users
+            }
+            );
+        })
+        // const messageList = await message.updateMany({chatId, seenBy: []},{$set:{seenBy:users}}).populate({
+        //     path: "chatId",
+        //     select: "participants"
+        // })
+
+        console.log(unseenMessages)
+
+
+    } catch (error) {
+        return callback?.({
+            status: 500,
+            message: "Something went wrong"
+        })
+    }
+}
+
+export { sendNewMessage, seenMessage, seenAllMessage }
