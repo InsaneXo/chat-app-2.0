@@ -80,7 +80,6 @@ const MessageList = () => {
         setTimeout(() => {
           chatEndRef.current?.scrollIntoView({ behavior: 'instant' })
         }, 100)
-        setPage(prev => prev + 1)
       } else {
         setMessageList((prev) => [...prev, ...newMessages])
       }
@@ -127,7 +126,15 @@ const MessageList = () => {
 
   const seenAllMessagelistener = useCallback((data: any) => {
     if (data.chatId !== selectedChatDetails._id) return;
-    loadMoreMessages()
+    setMessageList((prev) =>
+      prev.map((item) => {
+        const matchedMsg = data.messages.find((msg: any) => msg._id === item._id);
+        if (matchedMsg) {
+          return { ...item, seenBy: [data.user] };
+        }
+        return item;
+      })
+    );
   }, [selectedChatDetails._id])
 
   const eventHandler = {
@@ -145,8 +152,8 @@ const MessageList = () => {
     setPage(1)
     setHasMore(true)
     setIsInitialLoad(true)
-    
-    socket?.emit("SEEN_ALL_MESSAGE", { chatId: selectedChatDetails._id, users:store.userId })
+
+    socket?.emit("SEEN_ALL_MESSAGE", { chatId: selectedChatDetails._id, users: store.userId })
     loadMoreMessages()
   }, [selectedChatDetails._id])
 
