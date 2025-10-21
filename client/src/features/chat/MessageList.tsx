@@ -7,7 +7,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import useInfiniteScroll from '../../hooks/UseInfiniteScroll'
 import { useSocket } from '../../context/SocketProvider'
 import { UseSocketEvents } from '../../hooks/UseSocketEvents'
-import { data } from 'react-router-dom'
 
 interface messageType {
   body: string,
@@ -128,9 +127,7 @@ const MessageList = () => {
 
   const seenAllMessagelistener = useCallback((data: any) => {
     if (data.chatId !== selectedChatDetails._id) return;
-    console.log(data, "Seen All Message")
-
-
+    loadMoreMessages()
   }, [selectedChatDetails._id])
 
   const eventHandler = {
@@ -145,15 +142,12 @@ const MessageList = () => {
     if (!selectedChatDetails._id) return
 
     setMessageList([])
-    setPage(0)
+    setPage(1)
     setHasMore(true)
     setIsInitialLoad(true)
-
+    
+    socket?.emit("SEEN_ALL_MESSAGE", { chatId: selectedChatDetails._id, users:store.userId })
     loadMoreMessages()
-  }, [selectedChatDetails._id])
-
-  useEffect(() => {
-    socket?.emit("SEEN_ALL_MESSAGE", { chatId: selectedChatDetails._id })
   }, [selectedChatDetails._id])
 
   return (

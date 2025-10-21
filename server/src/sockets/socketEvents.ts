@@ -2,6 +2,7 @@ import { Socket } from "socket.io"
 import chat from "../models/chat";
 import message from "../models/message";
 import { getSockets } from "../utils/helper";
+import user from "../models/user";
 
 
 
@@ -32,6 +33,7 @@ interface seenMessageTypes {
 
 interface seenAllMessageTypes {
     io: any;
+    socket: any
     chatId: string;
     users: string;
     callback: any;
@@ -141,54 +143,64 @@ const seenMessage = async ({ io, messageId, callback, users }: seenMessageTypes)
     }
 }
 
-const seenAllMessage = async ({ io, chatId, users, callback }: seenAllMessageTypes) => {
-    try {
-
-        if (!chatId) {
-            return callback?.({
-                status: 400,
-                message: "All Fields are Requried"
-            })
-        }
-
-        const unseenMessages = await message.find({ chatId, seenBy: [] }).populate({
-            path: "chatId",
-            select: "participants"
-        })
-
-        if (unseenMessages.length === 0) {
-            return callback?.({
-                status: 200,
-                message: "All messages already seen",
-            });
-        }
-
-        await message.updateMany(
-            { chatId, seenBy: [] },
-            { $addToSet: { seenBy: users } }
-        );
-
-        unseenMessages.forEach((item:any) => {
-            const membersSocket = getSockets(item?.chatId.participants)
-            io.to(membersSocket).emit("SEEN_ALL_MESSAGE", {
-                chatId: item?.chatId._id, messageId: item._id, senderId: item.sender, seenUser: users
-            }
-            );
-        })
-        // const messageList = await message.updateMany({chatId, seenBy: []},{$set:{seenBy:users}}).populate({
-        //     path: "chatId",
-        //     select: "participants"
-        // })
-
-        console.log(unseenMessages)
-
-
-    } catch (error) {
-        return callback?.({
-            status: 500,
-            message: "Something went wrong"
-        })
+const seenAllMessage = async ({ io, socket, chatId, users, callback }: seenAllMessageTypes) => {
+  try {
+    if (!chatId) {
+      return callback?.({
+        status: 400,
+        message: "All fields are required",
+      });
     }
-}
+
+    const unseenMessages:any = await message.find({
+      chatId,
+      seenBy: { $ne: socket.userId },
+    }).populate({
+      path: "chatId",
+      select: "participants",
+    });
+
+    if (unseenMessages.length === 0) {
+      return callback?.({
+        status: 200,
+        message: "All messages already marked as read.",
+      });
+    }
+
+    
+    const isSender = unseenMessages.every(
+      (msg:any) => msg.sender.toString() === socket.userId.toString()
+    );
+
+    if (isSender) {
+      return callback?.({
+        status: 200,
+        message: "You are the sender, cannot mark your own messages as seen.",
+      });
+    }
+
+    await message.updateMany(
+      { chatId, seenBy: { $ne: socket.userId } },
+      { $addToSet: { seenBy: socket.userId } }
+    );
+
+    const chatParticipants = unseenMessages[0].chatId.participants.filter(
+      (id: any) => id.toString() !== socket.userId.toString()
+    );
+
+    const memberSockets = getSockets(chatParticipants);
+
+    io.to(memberSockets).emit("SEEN_ALL_MESSAGE", { chatId });
+
+
+  } catch (error) {
+    console.error("Error in seenAllMessage:", error);
+    return callback?.({
+      status: 500,
+      message: "Something went wrong.",
+    });
+  }
+};
+
 
 export { sendNewMessage, seenMessage, seenAllMessage }

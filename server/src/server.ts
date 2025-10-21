@@ -62,7 +62,7 @@ io.on("connection", (socket: any) => {
     })
 
     socket.on('SEEN_ALL_MESSAGE', async ({ chatId, users }: any, callback?: any) => {
-        seenAllMessage({ io, chatId, users, callback })
+        seenAllMessage({ io, socket, chatId, users, callback })
     })
 
 
