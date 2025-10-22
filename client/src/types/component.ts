@@ -64,7 +64,15 @@ export interface UserType {
   status: string;
 }
 
+export interface LatestMessageType {
+    _id:string;
+    sender:string;
+    content:string;
+    createdAt:string
+}
+
 export interface ChatListTypes {
   _id: string;
   user: UserType
+  latestMessage: LatestMessageType
 }

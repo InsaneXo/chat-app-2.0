@@ -13,12 +13,12 @@ const showChatList = async (req: Request, res: Response) => {
         const chatList = await chat.aggregate([
             {
                 $match: {
-                    participants: userId
+                    participants: new mongoose.Types.ObjectId(userId)
                 }
             },
             {
                 $lookup: {
-                    from: "usermodels", // your user collection name
+                    from: "usermodels", // collection name (check actual MongoDB collection)
                     localField: "participants",
                     foreignField: "_id",
                     as: "userDetails"
@@ -31,10 +31,24 @@ const showChatList = async (req: Request, res: Response) => {
                             $filter: {
                                 input: "$userDetails",
                                 as: "user",
-                                cond: { $ne: ["$$user._id", userId] }
+                                cond: { $ne: ["$$user._id", new mongoose.Types.ObjectId(userId)] }
                             }
                         }
                     }
+                }
+            },
+            {
+                $lookup: {
+                    from: "messagemodels",
+                    localField: "latestMessage",
+                    foreignField: "_id",
+                    as: "latestMessage"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$latestMessage",
+                    preserveNullAndEmptyArrays: true
                 }
             },
             {
@@ -44,15 +58,15 @@ const showChatList = async (req: Request, res: Response) => {
                     "user.name": 1,
                     "user.email": 1,
                     "user.avatarUrl": 1,
-                    "user.status": 1
+                    "user.status": 1,
+                    "latestMessage._id": 1,
+                    "latestMessage.content": 1,
+                    "latestMessage.createdAt": 1,
+                    "latestMessage.sender": 1
                 }
             },
-            {
-                $skip: skip
-            },
-            {
-                $limit: limit
-            }
+            { $skip: skip },
+            { $limit: limit }
         ]);
 
         const totalCount = await chat.countDocuments({

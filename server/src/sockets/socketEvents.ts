@@ -26,8 +26,8 @@ interface newMessageTypes {
 
 interface seenMessageTypes {
   io: any;
-  messageId: string[];
-  users: string
+  socket: any;
+  messageId: string;
   callback: any
 }
 
@@ -76,6 +76,10 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
       createdAt: saveMessageToDb.createdAt
     }
 
+    await chat.findByIdAndUpdate(saveMessageToDb.chatId, {$set: {
+      latestMessage: saveMessageToDb._id
+    }})
+
 
     const membersSocket = getSockets(isChatExist.participants)
 
@@ -95,9 +99,8 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
 
 }
 
-const seenMessage = async ({ io, messageId, callback, users }: seenMessageTypes) => {
+const seenMessage = async ({ io, socket, messageId, callback,}: seenMessageTypes) => {
   try {
-    console.log(messageId, users, "DSSS")
     if (!messageId) {
       return callback?.({
         status: 400,
@@ -105,32 +108,41 @@ const seenMessage = async ({ io, messageId, callback, users }: seenMessageTypes)
       })
     }
 
-    const messageIds = Array.isArray(messageId) ? messageId : [messageId];
+    const isExistMessage = await message.findById({ _id: messageId })
 
-    const updatedDoc = await Promise.all(
-      messageIds.map(async (id) => {
-        return await message.findByIdAndUpdate(
-          id,
-          { $addToSet: { seenBy: users } },
-          { new: true }
-        ).populate({
-          path: "chatId",
-          select: "participants"
-        })
+    if (!isExistMessage) {
+      return callback?.({
+        status: 404,
+        message: "Message Not Found"
       })
-    );
+    }
+
+    const isSender = isExistMessage.sender.toString() === socket.userId
+
+    if (isSender) {
+      return callback?.({
+        status: 400,
+        message: "You are the sender, cannot mark your own messages as seen."
+      })
+    }
+
+    const updateDoc: any = await message.findOneAndUpdate({ _id: isExistMessage._id, seenBy: { $ne: socket.userId } }, {
+      $addToSet: { seenBy: socket.userId }
+    }, {
+      new: true
+    }).populate(
+      {
+        path: "chatId",
+        select: "participants"
+      })
 
 
-    updatedDoc.forEach((item: any) => {
-      const membersSocket = getSockets()
+    const chatParticipants = updateDoc?.chatId.participants.filter((msgId: any) => msgId.toString() !== socket.userId)
 
-      io.to(membersSocket).emit("SEEN_MESSAGE", {
-        chatId: item?.chatId._id, messageId: item._id, seenUser: users
-      }
-      );
+    const membersSocket = getSockets(chatParticipants)
+    io.to(membersSocket).emit("SEEN_MESSAGE", {
+      chatId: updateDoc.chatId._id, messageId: updateDoc._id, user: socket.userId
     })
-
-
 
   } catch (error) {
     console.log(error, "error")
@@ -189,7 +201,6 @@ const seenAllMessage = async ({ io, socket, chatId, callback }: seenAllMessageTy
     const memberSockets = getSockets(chatParticipants);
 
     io.to(memberSockets).emit("SEEN_ALL_MESSAGE", { chatId, messages: unseenMessages, user: socket.userId });
-
 
   } catch (error) {
     console.error("Error in seenAllMessage:", error);

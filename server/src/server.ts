@@ -51,21 +51,18 @@ io.on("connection", (socket: any) => {
 
     const user = socket.userId;
     userSocketIDs.set(user.toString(), socket.id);
-    console.log(socket.id, "socket")
 
     socket.on('SEND_MESSAGE', async ({ chatId, content }: any, callback?: any) => {
         sendNewMessage({ io, socket, callback, chatId, content })
     })
 
-    socket.on('SEEN_MESSAGE', async ({ messageId, users }: any, callback?: any) => {
-        seenMessage({ io, messageId, callback, users })
+    socket.on('SEEN_MESSAGE', async ({ messageId }: any, callback?: any) => {
+        seenMessage({ io, socket, messageId, callback })
     })
 
-    socket.on('SEEN_ALL_MESSAGE', async ({ chatId, users }: any, callback?: any) => {
+    socket.on('SEEN_ALL_MESSAGE', async ({ chatId }: any, callback?: any) => {
         seenAllMessage({ io, socket, chatId, callback })
     })
-
-
 
     socket.on("disconnect", () => {
         console.log("User is disconnected to socket")

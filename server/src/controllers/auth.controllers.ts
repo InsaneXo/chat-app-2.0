@@ -3,6 +3,9 @@ import user from "../models/user";
 import { decodedJWTToken, decryptPassword, generateRandomString, generateSixDigitCode, hashingPassword, JWTTokenGenreted } from "../utils/helper";
 import sendMail from "../services/smtp.services";
 import friendRequest from "../models/friendRequest";
+import message from "../models/message";
+import chat from "../models/chat";
+import mongoose from "mongoose";
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -238,13 +241,61 @@ const session = async (req: Request, res: Response) => {
     try {
         const { userId, email } = req
 
-        const friendRequestList = await friendRequest.countDocuments({receiver: userId, status: "pending"}) 
+        const friendRequestList = await friendRequest.countDocuments({ receiver: userId, status: "pending" })
+        const unreadChatMessagesList = await chat.aggregate([
+            {
+                $match: {
+                    participants: new mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $lookup: {
+                    from: "messagemodels",
+                    localField: "_id",
+                    foreignField: "chatId",
+                    as: "messages"
+                }
+            },
+            {
+                $addFields: {
+                    unreadMessages: {
+                        $filter: {
+                            input: "$messages",
+                            as: "msg",
+                            cond: {
+                                $and: [
+                                    { $ne: ["$$msg.sender", new mongoose.Types.ObjectId(userId)] },
+                                    { $eq: [{ $size: "$$msg.seenBy" }, 0] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                // Keep only chats with unread messages > 0
+                $match: {
+                    $expr: { $gt: [{ $size: "$unreadMessages" }, 0] }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    totalUnreadCount: { $size: "$unreadMessages" }
+                }
+            }
+        ]);
+
+
+        console.log(unreadChatMessagesList, "unreadChatMessagesList")
+
 
         const countList = {
-            friendRequest : friendRequestList
+            friendRequest: friendRequestList,
+            unreadChatMessages: unreadChatMessagesList
         }
 
-        return res.status(200).json({userId, email, user : countList})
+        return res.status(200).json({ userId, email, user: countList })
     } catch (error) {
         console.log("Session Controller : ", error)
         return res.status(500).json({ message: "Something went wrong" })

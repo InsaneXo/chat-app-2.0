@@ -23,7 +23,7 @@ interface messageListType {
 }
 
 const MessageList = () => {
-  const { store, selectedChatDetails } = useStore()
+  const { store, selectedChatDetails, notification, setNotification } = useStore()
   const socket = useSocket()
 
 
@@ -102,9 +102,40 @@ const MessageList = () => {
     hasMore,
   });
 
+  const unreadChatMessageHandler = (data: any) => {
+    setNotification(prev => {
+      const exists = prev.unreadChatMessages.some(item => item._id === data.chatId);
+
+      let updatedUnread = prev.unreadChatMessages.map(item => {
+        if (item._id === data.chatId) {
+          return { ...item, totalUnreadCount: item.totalUnreadCount + 1 };
+        }
+        return item;
+      });
+
+      if (!exists) {
+        updatedUnread = [
+          ...updatedUnread,
+          { _id: data.chatId, totalUnreadCount: 1 }
+        ];
+      }
+
+      return {
+        ...prev,
+        unreadChatMessages: updatedUnread
+      };
+    });
+  };
+
+
+
+
   const newMessagesListener = useCallback(
     (data: any) => {
-      if (data.chatId !== selectedChatDetails._id) return;
+      if (data.chatId !== selectedChatDetails._id) {
+        unreadChatMessageHandler(data)
+        return
+      };
       setMessageList((prev) => [data.message, ...prev]);
       if (data.message.sender === store.userId) return
       socket?.emit("SEEN_MESSAGE", { messageId: [data.message._id], users: store.userId })
@@ -117,7 +148,7 @@ const MessageList = () => {
     setMessageList((prev) =>
       prev.map((msg) =>
         msg._id === data.messageId
-          ? { ...msg, seenBy: [data.seenUser] }
+          ? { ...msg, seenBy: [data.user] }
           : msg
       )
     );

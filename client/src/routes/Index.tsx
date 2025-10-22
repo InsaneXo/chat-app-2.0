@@ -24,9 +24,12 @@ const Router = () => {
                 userEmail: data.email,
                 userId: data.userId
             })
-            
+
+            console.log(data.user.unreadChatMessages, "unreadChatMessages")
+
             setNotification({
-                friendRequest: data.user.friendRequest
+                friendRequest: data.user.friendRequest,
+                unreadChatMessages: data.user.unreadChatMessages
             })
 
         } catch (error: any) {
