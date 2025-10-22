@@ -16,6 +16,32 @@ const AppLayout = () => {
     const { store, setNotification } = useStore()
     const { setToast } = useToast()
 
+    const unreadChatMessageHandler = (data: any) => {
+        setNotification(prev => {
+            const exists = prev.unreadChatMessages.some(item => item._id === data.chatId);
+
+            let updatedUnread = prev.unreadChatMessages.map(item => {
+                if (item._id === data.chatId) {
+                    return { ...item, totalUnreadCount: item.totalUnreadCount + 1 };
+                }
+                return item;
+            });
+
+            if (!exists) {
+                updatedUnread = [
+                    ...updatedUnread,
+                    { _id: data.chatId, totalUnreadCount: 1 }
+                ];
+            }
+
+            return {
+                ...prev,
+                unreadChatMessages: updatedUnread
+            };
+        });
+    };
+
+
     const sendRequestListener = useCallback(() => {
         if (!store.userId) return
         setNotification(prev => ({
@@ -29,9 +55,16 @@ const AppLayout = () => {
         setToast({ status: "Success", message: data.message })
     }, [store.userId])
 
+    const notificationListerner = useCallback((data: any) => {
+        if (!store.userId) return
+        unreadChatMessageHandler(data)
+    }, [store.userId])
+
+
     const socketListener = {
         ["SEND_REQUEST"]: sendRequestListener,
-        ["REQUEST_HANDLER"]: requestHandlerListener
+        ["REQUEST_HANDLER"]: requestHandlerListener,
+        ["NOTIFICATION"]: notificationListerner
     };
 
     UseSocketEvents(socket, socketListener)
@@ -40,7 +73,7 @@ const AppLayout = () => {
             <MenuBar />
             <Routes>
                 <Route path='/' element={<Navigate to={'/chats'} replace />} />
-                <Route path='/chats' element={<ChatWindow />}  />
+                <Route path='/chats' element={<ChatWindow />} />
                 <Route path='/status' element={<StatusWindow />} />
                 <Route path='/friends' element={<Friends />} />
                 <Route path='/settings' element={<Settings />} />

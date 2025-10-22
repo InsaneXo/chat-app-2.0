@@ -82,11 +82,14 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
 
 
     const membersSocket = getSockets(isChatExist.participants)
+    const chatParticipants = isChatExist?.chatId.participants.filter((msgId: any) => msgId.toString() !== socket.userId)
 
     io.to(membersSocket).emit("MESSAGE", {
       chatId,
       message: messageObj,
     });
+
+    io.to(chatParticipants).emit("NOTIFICATION", {chatId})
 
 
   } catch (error) {

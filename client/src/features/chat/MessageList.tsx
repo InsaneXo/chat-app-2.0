@@ -102,40 +102,14 @@ const MessageList = () => {
     hasMore,
   });
 
-  const unreadChatMessageHandler = (data: any) => {
-    setNotification(prev => {
-      const exists = prev.unreadChatMessages.some(item => item._id === data.chatId);
-
-      let updatedUnread = prev.unreadChatMessages.map(item => {
-        if (item._id === data.chatId) {
-          return { ...item, totalUnreadCount: item.totalUnreadCount + 1 };
-        }
-        return item;
-      });
-
-      if (!exists) {
-        updatedUnread = [
-          ...updatedUnread,
-          { _id: data.chatId, totalUnreadCount: 1 }
-        ];
-      }
-
-      return {
-        ...prev,
-        unreadChatMessages: updatedUnread
-      };
-    });
-  };
+  
 
 
 
 
   const newMessagesListener = useCallback(
     (data: any) => {
-      if (data.chatId !== selectedChatDetails._id) {
-        unreadChatMessageHandler(data)
-        return
-      };
+      if (data.chatId !== selectedChatDetails._id) return
       setMessageList((prev) => [data.message, ...prev]);
       if (data.message.sender === store.userId) return
       socket?.emit("SEEN_MESSAGE", { messageId: [data.message._id], users: store.userId })
