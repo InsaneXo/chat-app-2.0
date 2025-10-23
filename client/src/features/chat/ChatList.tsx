@@ -10,12 +10,25 @@ import { useSocket } from '../../context/SocketProvider'
 import { UseSocketEvents } from '../../hooks/UseSocketEvents'
 import { useStore } from '../../context/StoreProvider'
 
+interface RealTimeMessagesTypes {
+    sender: string;
+    chatId: string;
+    content: string;
+    time: any
+}
+
 
 const ChatList = () => {
     const [chatList, setChatList] = useState<ChatListTypes[]>([])
+    const [realTimeMessages, setRealTimeMessages] = useState<RealTimeMessagesTypes>({
+        sender: "",
+        chatId: "",
+        content: "",
+        time: ""
+    })
     const socket = useSocket()
     const { setToast } = useToast()
-    const { store, notification, setSelectedChatDetails, setNotification } = useStore()
+    const { store, notification, selectedChatDetails, setSelectedChatDetails, setNotification } = useStore()
     const [hasMore, setHasMore] = useState<boolean>(false)
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1)
@@ -68,9 +81,21 @@ const ChatList = () => {
         if (!store.userId) return
         setChatList((prev) => [...prev, data.realTimeData])
     }, [store.userId])
+    const newMessagesListener = useCallback(
+        (data: any) => {
+            setRealTimeMessages({
+                sender: data.message.sender,
+                chatId: data.chatId,
+                content: data.message.content,
+                time: new Date().toISOString()
+            })
+        },
+        [selectedChatDetails._id]
+    );
 
     const socketListener = {
         ["REQUEST_HANDLER"]: requestHandlerListener,
+        ["MESSAGE"]: newMessagesListener,
     };
 
 
@@ -101,8 +126,8 @@ const ChatList = () => {
                 {chatList.map((item) => {
                     const count = notification.unreadChatMessages.find((chat) => chat._id === item._id)
 
-                    return (<ChatItem key={item._id} _id={item._id} name={item.user.name} senderId={item.latestMessage.sender} messageCount={count?.totalUnreadCount}
-                        message={item.latestMessage.content} status={item.user.status} day={new Date(item.latestMessage.createdAt).toLocaleTimeString('en-US', {
+                    return (<ChatItem key={item._id} _id={item._id} name={item.user.name} senderId={realTimeMessages.sender ? realTimeMessages.sender : item.latestMessage.sender} messageCount={count?.totalUnreadCount}
+                        message={realTimeMessages.content ? realTimeMessages.content : item.latestMessage.content} status={item.user.status} day={new Date(realTimeMessages.time ? realTimeMessages.time : item.latestMessage.createdAt).toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit'
                         })} onclickHandler={onclickHandler} />)

@@ -11,7 +11,7 @@ interface CustomChatItemProps {
     status: string;
     senderId:string;
     name: string;
-    message: string;
+    message: string | undefined;
     day: string;
     onContextMenuData: ContextMenuDataProps[]
     onclickHandler: (_id: string, name: string, avatar: string) => void
@@ -45,7 +45,7 @@ const CustomChatItem = ({ _id, avatar, name, senderId, status, messageCount, mes
                     </div>
                     <div className='flex justify-between items-center'>
                         <div className='flex gap-1'>
-                            {senderId === store.userId &&  <CustomIcon name='hugeicons:tick-double-02' />}
+                            {senderId === store.userId &&  <CustomIcon name='hugeicons:tick-double-02' className='text-gray-500' />}
                             <h1 className='font-light text-[13px] text-gray-400'>{message ? message : status}</h1>
                         </div>
                         {messageCount > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px]'>{messageCount}</div>}

@@ -12,8 +12,10 @@ interface seletedChatDetailsType {
   name: string
 }
 interface unreadChatMessagesType {
-  _id:string,
-  totalUnreadCount:number
+  _id:string;
+  totalUnreadCount:number;
+  latestMessage: string;
+  time: string;
 }
 
 interface notificationType {

@@ -13,14 +13,14 @@ import { useToast } from "../../context/ToastMessageProvider"
 
 const AppLayout = () => {
     const socket = useSocket()
-    const { store, setNotification } = useStore()
+    const { store, setNotification, selectedChatDetails } = useStore()
     const { setToast } = useToast()
 
     const unreadChatMessageHandler = (data: any) => {
         setNotification(prev => {
             const exists = prev.unreadChatMessages.some(item => item._id === data.chatId);
 
-            let updatedUnread = prev.unreadChatMessages.map(item => {
+            let updatedUnread:any = prev.unreadChatMessages.map(item => {
                 if (item._id === data.chatId) {
                     return { ...item, totalUnreadCount: item.totalUnreadCount + 1 };
                 }
@@ -56,9 +56,9 @@ const AppLayout = () => {
     }, [store.userId])
 
     const notificationListerner = useCallback((data: any) => {
-        if (!store.userId) return
+        if (data.chatId === selectedChatDetails._id) return
         unreadChatMessageHandler(data)
-    }, [store.userId])
+    }, [selectedChatDetails._id])
 
 
     const socketListener = {

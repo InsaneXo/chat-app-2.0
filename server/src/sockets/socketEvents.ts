@@ -44,7 +44,6 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
   try {
 
     if (!chatId || !content) {
-      console.log("HEllo")
       return callback?.({
         status: 400,
         message: "All Fields are Requried"
@@ -76,23 +75,28 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
       createdAt: saveMessageToDb.createdAt
     }
 
-    await chat.findByIdAndUpdate(saveMessageToDb.chatId, {$set: {
-      latestMessage: saveMessageToDb._id
-    }})
+    await chat.findByIdAndUpdate(saveMessageToDb.chatId, {
+      $set: {
+        latestMessage: saveMessageToDb._id
+      }
+    })
 
-
+    const reciverMember = isChatExist?.participants.filter((msgId: any) => msgId.toString() !== socket.userId.toString()
+    )
     const membersSocket = getSockets(isChatExist.participants)
-    const chatParticipants = isChatExist?.chatId.participants.filter((msgId: any) => msgId.toString() !== socket.userId)
+    const receiverSocket = getSockets(reciverMember)
 
     io.to(membersSocket).emit("MESSAGE", {
       chatId,
       message: messageObj,
     });
 
-    io.to(chatParticipants).emit("NOTIFICATION", {chatId})
+    io.to(receiverSocket).emit("NOTIFICATION", { chatId })
+
 
 
   } catch (error) {
+    console.log(error)
     return callback?.({
       status: 500,
       message: "Something went wrong"
@@ -102,7 +106,7 @@ const sendNewMessage = async ({ io, socket, callback, chatId, content }: newMess
 
 }
 
-const seenMessage = async ({ io, socket, messageId, callback,}: seenMessageTypes) => {
+const seenMessage = async ({ io, socket, messageId, callback, }: seenMessageTypes) => {
   try {
     if (!messageId) {
       return callback?.({
