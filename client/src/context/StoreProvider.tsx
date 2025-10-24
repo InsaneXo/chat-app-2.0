@@ -12,15 +12,15 @@ interface seletedChatDetailsType {
   name: string
 }
 interface unreadChatMessagesType {
-  _id:string;
-  totalUnreadCount:number;
+  _id: string;
+  totalUnreadCount: number;
   latestMessage: string;
   time: string;
 }
 
 interface notificationType {
-  friendRequest:number,
-  unreadChatMessages:unreadChatMessagesType[],
+  friendRequest: number,
+  unreadChatMessages: unreadChatMessagesType[],
 }
 
 interface StoreContextType {
@@ -60,7 +60,7 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
 
   const [notification, setNotification] = useState<notificationType>({
     friendRequest: 0,
-    unreadChatMessages:[]
+    unreadChatMessages: []
   })
 
 

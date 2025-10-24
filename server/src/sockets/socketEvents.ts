@@ -124,7 +124,7 @@ const seenMessage = async ({ io, socket, messageId, callback, }: seenMessageType
       })
     }
 
-    const isSender = isExistMessage.sender.toString() === socket.userId
+    const isSender = isExistMessage.sender.toString() === socket.userId.toString()
 
     if (isSender) {
       return callback?.({

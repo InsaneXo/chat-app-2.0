@@ -83,6 +83,7 @@ const ChatList = () => {
     }, [store.userId])
     const newMessagesListener = useCallback(
         (data: any) => {
+            console.log(data, "Data")
             setRealTimeMessages({
                 sender: data.message.sender,
                 chatId: data.chatId,
@@ -93,13 +94,27 @@ const ChatList = () => {
         [selectedChatDetails._id]
     );
 
+    const markAsReadListener = useCallback((data: any) => {
+        if (data.chatId !== selectedChatDetails._id) return;
+        // setMessageList((prev) =>
+        //     prev.map((msg) =>
+        //         msg._id === data.messageId
+        //             ? { ...msg, seenBy: [data.user] }
+        //             : msg
+        //     )
+        // );
+
+    }, [selectedChatDetails._id])
+
     const socketListener = {
         ["REQUEST_HANDLER"]: requestHandlerListener,
         ["MESSAGE"]: newMessagesListener,
+        ["SEEN_MESSAGE"]: markAsReadListener
     };
 
 
-    UseSocketEvents(socket, socketListener)
+    // UseSocketEvents(socket, socketListener)
+    console.log("Hello world")
 
     useEffect(() => {
         fetchChatList()

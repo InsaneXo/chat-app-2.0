@@ -273,7 +273,6 @@ const session = async (req: Request, res: Response) => {
                 }
             },
             {
-                // Keep only chats with unread messages > 0
                 $match: {
                     $expr: { $gt: [{ $size: "$unreadMessages" }, 0] }
                 }
@@ -285,9 +284,6 @@ const session = async (req: Request, res: Response) => {
                 }
             }
         ]);
-
-
-        console.log(unreadChatMessagesList, "unreadChatMessagesList")
 
 
         const countList = {

@@ -111,7 +111,7 @@ const Friends = () => {
         ["SEND_REQUEST"]: sendRequestListener,
     };
 
-    UseSocketEvents(socket, socketListener)
+    // UseSocketEvents(socket, socketListener)
     useEffect(() => {
         fetchFriendRequests()
     }, [])

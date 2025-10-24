@@ -148,7 +148,7 @@ const MessageList = () => {
     ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener
   };
 
-  UseSocketEvents(socket, eventHandler)
+  // UseSocketEvents(socket, eventHandler)
 
   useEffect(() => {
     if (!selectedChatDetails._id) return
