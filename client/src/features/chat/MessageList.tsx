@@ -50,7 +50,14 @@ const MessageList = () => {
         body: "",
         type: ""
       })
-      socket?.emit("SEND_MESSAGE", { chatId: selectedChatDetails._id, content })
+      await axios({
+        url: "/api/chat/message",
+        method: "POST",
+        data: {
+          chatId: selectedChatDetails._id,
+          content
+        }
+      })
     } catch (error: any) {
       if (error) {
         setToast({ status: "Error", message: error.response.data.message })
@@ -102,17 +109,43 @@ const MessageList = () => {
     hasMore,
   });
 
-  
 
+
+  const seenAllMessages = async () => {
+    try {
+
+      await axios(
+        {
+          url: "/api/chat/message/seen-all",
+          method: "PUT",
+          data: {
+            chatId: selectedChatDetails._id
+          }
+        }
+      )
+    } catch (error: any) {
+      if (error) {
+        setToast({ status: "Error", message: error.response.data.message })
+      }
+    }
+  }
 
 
 
   const newMessagesListener = useCallback(
-    (data: any) => {
+    async (data: any) => {
       if (data.chatId !== selectedChatDetails._id) return
       setMessageList((prev) => [data.message, ...prev]);
       if (data.message.sender === store.userId) return
-      socket?.emit("SEEN_MESSAGE", { messageId: [data.message._id], users: store.userId })
+      await axios(
+        {
+          url: "/api/chat/message/seen",
+          method: "PUT",
+          data: {
+            messageId: data.message._id
+          }
+        }
+      )
     },
     [selectedChatDetails._id]
   );
@@ -148,7 +181,7 @@ const MessageList = () => {
     ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener
   };
 
-  // UseSocketEvents(socket, eventHandler)
+  UseSocketEvents(socket, eventHandler)
 
   useEffect(() => {
     if (!selectedChatDetails._id) return
@@ -158,7 +191,7 @@ const MessageList = () => {
     setHasMore(true)
     setIsInitialLoad(true)
 
-    socket?.emit("SEEN_ALL_MESSAGE", { chatId: selectedChatDetails._id, users: store.userId })
+    seenAllMessages()
     loadMoreMessages()
   }, [selectedChatDetails._id])
 

@@ -44,7 +44,6 @@ const ForgetPassword = () => {
   const handleForgetPassword = async (formData: InputTypes) => {
     try {
       setLoading(true)
-      console.log("formData : ", formData)
       const { data } = await axios({
         url: '/api/auth/forget-password',
         method: "POST",

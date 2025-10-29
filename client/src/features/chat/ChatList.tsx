@@ -83,7 +83,6 @@ const ChatList = () => {
     }, [store.userId])
     const newMessagesListener = useCallback(
         (data: any) => {
-            console.log(data, "Data")
             setRealTimeMessages({
                 sender: data.message.sender,
                 chatId: data.chatId,
@@ -114,7 +113,6 @@ const ChatList = () => {
 
 
     // UseSocketEvents(socket, socketListener)
-    console.log("Hello world")
 
     useEffect(() => {
         fetchChatList()
@@ -141,11 +139,8 @@ const ChatList = () => {
                 {chatList.map((item) => {
                     const count = notification.unreadChatMessages.find((chat) => chat._id === item._id)
 
-                    return (<ChatItem key={item._id} _id={item._id} name={item.user.name} senderId={realTimeMessages.sender ? realTimeMessages.sender : item.latestMessage.sender} messageCount={count?.totalUnreadCount}
-                        message={realTimeMessages.content ? realTimeMessages.content : item.latestMessage.content} status={item.user.status} day={new Date(realTimeMessages.time ? realTimeMessages.time : item.latestMessage.createdAt).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })} onclickHandler={onclickHandler} />)
+                    return (<ChatItem key={item._id} _id={item._id} name={item.user.name} messageCount={count?.totalUnreadCount}
+                       status={item.user.status} onclickHandler={onclickHandler} />)
 
                 })}
                 {loading && (

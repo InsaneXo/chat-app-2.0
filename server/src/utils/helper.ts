@@ -2,6 +2,7 @@ import bcrypt from "bcrypt"
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken"
 import { userSocketIDs } from "../server";
+import { Socket } from "socket.io";
 
 // Password Hashing Feature. 
 
@@ -61,6 +62,8 @@ const emitEvent = (req: Request, event: string, users: any, data: any) => {
     const usersSocket = getSockets(users);
     io.to(usersSocket).emit(event, data);
 };
+
+
 
 class ErrorHandler extends Error {
     public statusCode: number;

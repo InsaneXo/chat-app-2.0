@@ -118,14 +118,10 @@ const sendMessage = async (req: Request, res: Response) => {
             }
         })
 
-        const receiver = isChatExist?.participants.filter((msgId: any) => msgId.toString() !== req.userId
-        )
         emitEvent(req, "MESSAGE", isChatExist?.participants, {
             chatId,
             message: realTimeDataMessageObj,
         })
-
-        emitEvent(req, "NOTIFICATION", receiver, { chatId })
 
         return res.status(200).json({ message: "Message Sent Successfully" })
     } catch (error) {
@@ -187,4 +183,98 @@ const showMessageList = async (req: Request, res: Response) => {
     }
 }
 
-export { showChatList, sendMessage, showMessageList }
+const seenMessage = async (req: Request, res: Response) => {
+    try {
+        const { messageId } = req.body
+
+        if (!messageId) {
+            return res.status(400).json({ message: "All Fields are Requried" })
+        }
+
+        const isExistMessage = await message.findById(messageId)
+
+        if (!isExistMessage) {
+            return res.status(404).json({ message: "Message not found" })
+        }
+
+        const isOwnMessage = isExistMessage.sender.toString() === req.userId?.toString()
+
+        if (isOwnMessage) {
+            return res.status(200).json({ message: "You are the sender, cannot mark your own messages as seen." })
+        }
+
+        const updateMessageStatus: any = await message.findOneAndUpdate({ _id: messageId, seenBy: { $ne: req.userId?.toString() } }, {
+            $addToSet: { seenBy: req.userId?.toString() },
+        }, {
+            new: true
+        }).populate(
+            {
+                path: "chatId",
+                select: "participants"
+            }
+        )
+
+        const chatParticipants = updateMessageStatus?.chatId.participants
+
+        emitEvent(req, "SEEN_MESSAGE", chatParticipants, { chatId: updateMessageStatus?.chatId._id, messageId, user: req.userId?.toString() })
+
+        return res.status(200).json({
+            message: "Message Seen"
+        })
+
+    } catch (error) {
+        console.log("Seen Message Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+const seenAllMessages = async (req: Request, res: Response) => {
+    try {
+        const { chatId } = req.body
+
+        if (!chatId) {
+            return res.status(400).json({ message: "All Fields are requried" })
+        }
+
+        const unseenMessages: any = await message.find({
+            chatId,
+            seenBy: { $ne: req.userId?.toString() }
+        }).populate({
+            path: "chatId",
+            select: "participants"
+        })
+
+        if (unseenMessages.length === 0) {
+            return res.status(200).json({ message: "All messages already marked as read." })
+        }
+
+        const isSender = unseenMessages.every((msg: any) => msg.sender.toString() === req.userId?.toString())
+
+        if (isSender) {
+            return res.status(200).json({
+                message: "You are the sender, cannot mark your own messages as seen."
+            })
+        }
+
+        await message.updateMany({
+            chatId, seenBy: { $ne: req.userId?.toString() }
+        },
+            { $addToSet: { seenBy: req.userId?.toString() } }
+        );
+
+        const chatParticipants = unseenMessages[0].chatId.participants.filter(
+            (id: any) => id.toString() !== req.userId?.toString()
+        );
+
+        emitEvent(req, "SEEN_ALL_MESSAGE", chatParticipants, { chatId, messages: unseenMessages, user: req.userId?.toString() })
+        return res.status(200).json({
+            message: "All Messages are seen"
+        })
+
+    } catch (error) {
+        console.log("Seen All Message Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+export { showChatList, sendMessage, showMessageList, seenMessage, seenAllMessages }

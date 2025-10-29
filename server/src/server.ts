@@ -11,6 +11,7 @@ import { corsOptions } from "./config/constant/config"
 import { socketMiddleware } from "./middlewares/auth.middleware"
 import ErrorHandler from "./utils/helper"
 import { seenAllMessage, seenMessage, sendNewMessage } from "./sockets/socketEvents"
+import socketConnection from "./services/socket.services"
 
 const app = express()
 const server = createServer(app);
@@ -32,10 +33,11 @@ app.use(cors(corsOptions))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 
-app.use('/api', router)
 app.get("/", (req, res) => {
     res.send("Hello World");
 });
+app.use('/api', router)
+
 
 io.use(async (socket, next) => {
     const token = socket.handshake.auth.token
@@ -45,29 +47,7 @@ io.use(async (socket, next) => {
     await socketMiddleware(socket, next)
 })
 
-
-io.on("connection", (socket: any) => {
-    console.log("User is connected to socket")
-
-    const user = socket.userId;
-    userSocketIDs.set(user.toString(), socket.id);
-
-    socket.on('SEND_MESSAGE', async ({ chatId, content }: any, callback?: any) => {
-        sendNewMessage({ io, socket, callback, chatId, content })
-    })
-
-    socket.on('SEEN_MESSAGE', async ({ messageId }: any, callback?: any) => {
-        seenMessage({ io, socket, messageId, callback })
-    })
-
-    socket.on('SEEN_ALL_MESSAGE', async ({ chatId }: any, callback?: any) => {
-        seenAllMessage({ io, socket, chatId, callback })
-    })
-
-    socket.on("disconnect", () => {
-        console.log("User is disconnected to socket")
-    });
-})
+socketConnection(io)
 
 server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`)
