@@ -10,6 +10,7 @@ import { useStore } from "../../context/StoreProvider"
 import { useCallback } from "react"
 import { UseSocketEvents } from "../../hooks/UseSocketEvents"
 import { useToast } from "../../context/ToastMessageProvider"
+import { notificationEventHandler } from "../../utils/features"
 
 const AppLayout = () => {
     const socket = useSocket()
@@ -18,7 +19,7 @@ const AppLayout = () => {
 
     const unreadChatMessageHandler = (data: any) => {
         setNotification(prev => {
-            const exists = prev.unreadChatMessages.some(item => item._id === data.chatId);
+            const exists = prev.unreadChatMessages.every(item => item._id === data.chatId);
 
             let updatedUnread: any = prev.unreadChatMessages.map(item => {
                 if (item._id === data.chatId) {
@@ -41,13 +42,18 @@ const AppLayout = () => {
         });
     };
 
-
-    const sendRequestListener = useCallback(() => {
-        if (!store.userId) return
+    const sendRequestHandler = () => {
         setNotification(prev => ({
             ...prev,
             friendRequest: prev.friendRequest + 1
         }));
+    }
+    
+
+
+    const sendRequestListener = useCallback((data: any) => {
+        if (!store.userId) return
+        notificationEventHandler({ data, type: data.type, listeners: sendRequestHandler })
     }, [store.userId])
 
     const requestHandlerListener = useCallback((data: any) => {
@@ -57,12 +63,12 @@ const AppLayout = () => {
 
     const notificationListerner = useCallback((data: any) => {
         if (data.chatId === selectedChatDetails._id) return
-        unreadChatMessageHandler(data)
+        notificationEventHandler({ data, type: data.type, listeners: unreadChatMessageHandler(data) })
+
     }, [selectedChatDetails._id])
 
 
     const socketListener = {
-        ["SEND_REQUEST"]: sendRequestListener,
         ["REQUEST_HANDLER"]: requestHandlerListener,
         ["NOTIFICATION"]: notificationListerner,
     };

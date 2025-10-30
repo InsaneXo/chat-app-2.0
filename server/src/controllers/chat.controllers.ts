@@ -118,10 +118,16 @@ const sendMessage = async (req: Request, res: Response) => {
             }
         })
 
+
         emitEvent(req, "MESSAGE", isChatExist?.participants, {
             chatId,
             message: realTimeDataMessageObj,
         })
+
+        if (saveMessageToDb.sender.toString() !== req.userId?.toString()) {
+            emitEvent(req, "NOTIFICATION", [req.userId?.toString()], { chatId: saveMessageToDb.chatId.toString(), type: "message" })
+        }
+
 
         return res.status(200).json({ message: "Message Sent Successfully" })
     } catch (error) {

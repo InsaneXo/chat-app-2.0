@@ -10,22 +10,9 @@ import { useSocket } from '../../context/SocketProvider'
 import { UseSocketEvents } from '../../hooks/UseSocketEvents'
 import { useStore } from '../../context/StoreProvider'
 
-interface RealTimeMessagesTypes {
-    sender: string;
-    chatId: string;
-    content: string;
-    time: any
-}
-
 
 const ChatList = () => {
     const [chatList, setChatList] = useState<ChatListTypes[]>([])
-    const [realTimeMessages, setRealTimeMessages] = useState<RealTimeMessagesTypes>({
-        sender: "",
-        chatId: "",
-        content: "",
-        time: ""
-    })
     const socket = useSocket()
     const { setToast } = useToast()
     const { store, notification, selectedChatDetails, setSelectedChatDetails, setNotification } = useStore()
@@ -81,17 +68,6 @@ const ChatList = () => {
         if (!store.userId) return
         setChatList((prev) => [...prev, data.realTimeData])
     }, [store.userId])
-    const newMessagesListener = useCallback(
-        (data: any) => {
-            setRealTimeMessages({
-                sender: data.message.sender,
-                chatId: data.chatId,
-                content: data.message.content,
-                time: new Date().toISOString()
-            })
-        },
-        [selectedChatDetails._id]
-    );
 
     const markAsReadListener = useCallback((data: any) => {
         if (data.chatId !== selectedChatDetails._id) return;
@@ -107,12 +83,11 @@ const ChatList = () => {
 
     const socketListener = {
         ["REQUEST_HANDLER"]: requestHandlerListener,
-        ["MESSAGE"]: newMessagesListener,
         ["SEEN_MESSAGE"]: markAsReadListener
     };
 
 
-    // UseSocketEvents(socket, socketListener)
+    UseSocketEvents(socket, socketListener)
 
     useEffect(() => {
         fetchChatList()
@@ -140,7 +115,7 @@ const ChatList = () => {
                     const count = notification.unreadChatMessages.find((chat) => chat._id === item._id)
 
                     return (<ChatItem key={item._id} _id={item._id} name={item.user.name} messageCount={count?.totalUnreadCount}
-                       status={item.user.status} onclickHandler={onclickHandler} />)
+                        status={item.user.status} onclickHandler={onclickHandler} />)
 
                 })}
                 {loading && (
