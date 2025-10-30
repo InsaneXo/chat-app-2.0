@@ -10,12 +10,34 @@ import { useStore } from "../../context/StoreProvider"
 import { useCallback } from "react"
 import { UseSocketEvents } from "../../hooks/UseSocketEvents"
 import { useToast } from "../../context/ToastMessageProvider"
-import { notificationEventHandler } from "../../utils/features"
+
 
 const AppLayout = () => {
     const socket = useSocket()
     const { store, setNotification, selectedChatDetails } = useStore()
     const { setToast } = useToast()
+
+    const notificationListerner = useCallback((data: any) => {
+        switch (data.type) {
+            case "message":
+                if (data.chatId === selectedChatDetails._id) return
+                unreadChatMessageHandler(data)
+                break;
+            case "sendFriendRequest":
+                setNotification(prev => ({
+                    ...prev,
+                    friendRequest: prev.friendRequest + 1
+                }));
+                break;
+            case "requestAccept":
+                setToast({ status: "Success", message: data.message })
+                break;
+            default:
+                setToast({ status: "Error", message: "Invaild Type" })
+        }
+
+
+    }, [store.userId, selectedChatDetails._id])
 
     const unreadChatMessageHandler = (data: any) => {
         setNotification(prev => {
@@ -42,34 +64,7 @@ const AppLayout = () => {
         });
     };
 
-    const sendRequestHandler = () => {
-        setNotification(prev => ({
-            ...prev,
-            friendRequest: prev.friendRequest + 1
-        }));
-    }
-    
-
-
-    const sendRequestListener = useCallback((data: any) => {
-        if (!store.userId) return
-        notificationEventHandler({ data, type: data.type, listeners: sendRequestHandler })
-    }, [store.userId])
-
-    const requestHandlerListener = useCallback((data: any) => {
-        if (!store.userId) return
-        setToast({ status: "Success", message: data.message })
-    }, [store.userId])
-
-    const notificationListerner = useCallback((data: any) => {
-        if (data.chatId === selectedChatDetails._id) return
-        notificationEventHandler({ data, type: data.type, listeners: unreadChatMessageHandler(data) })
-
-    }, [selectedChatDetails._id])
-
-
     const socketListener = {
-        ["REQUEST_HANDLER"]: requestHandlerListener,
         ["NOTIFICATION"]: notificationListerner,
     };
 
