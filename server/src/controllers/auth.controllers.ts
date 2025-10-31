@@ -6,6 +6,7 @@ import friendRequest from "../models/friendRequest";
 import message from "../models/message";
 import chat from "../models/chat";
 import mongoose from "mongoose";
+import otherNotification from "../models/otherNotification";
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -284,11 +285,13 @@ const session = async (req: Request, res: Response) => {
                 }
             }
         ]);
+        const notificationList = await otherNotification.countDocuments({ senderId: req.userId?.toString(), seen: false })
 
 
         const countList = {
             friendRequest: friendRequestList,
-            unreadChatMessages: unreadChatMessagesList
+            unreadChatMessages: unreadChatMessagesList,
+            notifications: notificationList
         }
 
         return res.status(200).json({ userId, email, user: countList })

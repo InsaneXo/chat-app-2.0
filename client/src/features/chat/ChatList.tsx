@@ -1,21 +1,17 @@
 import CustomIcon from '../../components/UI/CustomIcon'
 import { CustomSearchBar } from '../../components/UI/CustomSearchBar'
 import ChatItem from '../../components/UI/CustomChatItem'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useToast } from '../../context/ToastMessageProvider'
 import useInfiniteScroll from '../../hooks/UseInfiniteScroll'
 import axios from 'axios'
 import type { ChatListTypes } from '../../types/component'
-import { useSocket } from '../../context/SocketProvider'
-import { UseSocketEvents } from '../../hooks/UseSocketEvents'
 import { useStore } from '../../context/StoreProvider'
 
 
 const ChatList = () => {
-    const [chatList, setChatList] = useState<ChatListTypes[]>([])
-    const socket = useSocket()
     const { setToast } = useToast()
-    const { store, notification, selectedChatDetails, setSelectedChatDetails, setNotification } = useStore()
+    const { notification, setSelectedChatDetails, setNotification, chatList, setChatList } = useStore()
     const [hasMore, setHasMore] = useState<boolean>(false)
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1)
@@ -64,30 +60,6 @@ const ChatList = () => {
 
     const { containerRef, loading } = useInfiniteScroll({ loadMore: fetchChatList, hasMore })
 
-    const requestHandlerListener = useCallback((data: any) => {
-        if (!store.userId) return
-        setChatList((prev) => [...prev, data.realTimeData])
-    }, [store.userId])
-
-    const markAsReadListener = useCallback((data: any) => {
-        if (data.chatId !== selectedChatDetails._id) return;
-        // setMessageList((prev) =>
-        //     prev.map((msg) =>
-        //         msg._id === data.messageId
-        //             ? { ...msg, seenBy: [data.user] }
-        //             : msg
-        //     )
-        // );
-
-    }, [selectedChatDetails._id])
-
-    const socketListener = {
-        ["REQUEST_HANDLER"]: requestHandlerListener,
-        ["SEEN_MESSAGE"]: markAsReadListener
-    };
-
-
-    UseSocketEvents(socket, socketListener)
 
     useEffect(() => {
         fetchChatList()

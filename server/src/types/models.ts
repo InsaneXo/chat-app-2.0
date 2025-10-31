@@ -46,3 +46,10 @@ export interface IFriendRequest extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IOtherNotification extends Document {
+  senderId: Types.ObjectId | IUser 
+  message: string;
+  avatar:string;
+  seen: boolean;
+}

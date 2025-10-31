@@ -90,6 +90,10 @@ const sendMessage = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All Fields are Requried" })
         }
 
+        if (!mongoose.isValidObjectId(chatId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
+        }
+
         const isChatExist: any = await chat.exists({ _id: chatId })
 
         if (!isChatExist) {
@@ -147,6 +151,10 @@ const showMessageList = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All Fields are requried" })
         }
 
+        if (!mongoose.isValidObjectId(chatId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
+        }
+
         const messages = await message.aggregate([
             {
                 $match: { chatId: new mongoose.Types.ObjectId(chatId) }
@@ -197,6 +205,10 @@ const seenMessage = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All Fields are Requried" })
         }
 
+        if (!mongoose.isValidObjectId(messageId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
+        }
+
         const isExistMessage = await message.findById(messageId)
 
         if (!isExistMessage) {
@@ -240,6 +252,10 @@ const seenAllMessages = async (req: Request, res: Response) => {
 
         if (!chatId) {
             return res.status(400).json({ message: "All Fields are requried" })
+        }
+
+        if (!mongoose.isValidObjectId(chatId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
         }
 
         const unseenMessages: any = await message.find({

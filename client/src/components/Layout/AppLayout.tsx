@@ -10,11 +10,12 @@ import { useStore } from "../../context/StoreProvider"
 import { useCallback } from "react"
 import { UseSocketEvents } from "../../hooks/UseSocketEvents"
 import { useToast } from "../../context/ToastMessageProvider"
+import Notification from "../../pages/Notification"
 
 
 const AppLayout = () => {
     const socket = useSocket()
-    const { store, setNotification, selectedChatDetails } = useStore()
+    const { store, setNotification, selectedChatDetails, setFriendRequest, setChatList } = useStore()
     const { setToast } = useToast()
 
     const notificationListerner = useCallback((data: any) => {
@@ -28,9 +29,14 @@ const AppLayout = () => {
                     ...prev,
                     friendRequest: prev.friendRequest + 1
                 }));
+                setFriendRequest(prev => [...prev, data.realTimeData])
                 break;
             case "requestAccept":
-                setToast({ status: "Success", message: data.message })
+                setNotification(prev => ({
+                    ...prev,
+                    otherNotification: prev.otherNotification + 1
+                }));
+                setChatList((prev) => [...prev, data.realTimeData])
                 break;
             default:
                 setToast({ status: "Error", message: "Invaild Type" })
@@ -79,6 +85,7 @@ const AppLayout = () => {
                 <Route path='/friends' element={<Friends />} />
                 <Route path='/settings' element={<Settings />} />
                 <Route path='/profile' element={<Profile />} />
+                <Route path='/notification' element={<Notification />} />
                 <Route path='*' element={<Navigate to="/" replace />} />
             </Routes>
         </>

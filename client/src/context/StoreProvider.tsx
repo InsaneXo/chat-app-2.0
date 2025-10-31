@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, type ReactNode } from "react";
+import type { ChatListTypes } from "../types/component";
 
 interface StoreType {
   isAuthenticate: boolean;
@@ -18,18 +19,37 @@ interface unreadChatMessagesType {
   time: string;
 }
 
+// interface otherNotificationTypes {
+//   _id: string;
+//   message: string;
+//   avatar: string;
+//   createdAt: string
+// }
+
 interface notificationType {
-  friendRequest: number,
-  unreadChatMessages: unreadChatMessagesType[],
+  friendRequest: number;
+  unreadChatMessages: unreadChatMessagesType[];
+  otherNotification: number
+}
+
+interface FriendRequestListType {
+  _id: string;
+  name: string;
+  email: string;
+  requestId: string
 }
 
 interface StoreContextType {
   store: StoreType;
   setStore: React.Dispatch<React.SetStateAction<StoreType>>;
-  selectedChatDetails: seletedChatDetailsType
+  selectedChatDetails: seletedChatDetailsType;
   setSelectedChatDetails: React.Dispatch<React.SetStateAction<seletedChatDetailsType>>;
-  notification: notificationType
+  notification: notificationType;
   setNotification: React.Dispatch<React.SetStateAction<notificationType>>
+  friendRequest: FriendRequestListType[];
+  setFriendRequest: React.Dispatch<React.SetStateAction<FriendRequestListType[]>>
+  chatList: ChatListTypes[];
+  setChatList: React.Dispatch<React.SetStateAction<ChatListTypes[]>>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -60,12 +80,16 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
 
   const [notification, setNotification] = useState<notificationType>({
     friendRequest: 0,
-    unreadChatMessages: []
+    unreadChatMessages: [],
+    otherNotification: 0
   })
+
+  const [friendRequest, setFriendRequest] = useState<FriendRequestListType[]>([])
+  const [chatList, setChatList] = useState<ChatListTypes[]>([])
 
 
   return (
-    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails, notification, setNotification }}>
+    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails, notification, setNotification, friendRequest, setFriendRequest, chatList, setChatList }}>
       {children}
     </StoreContext.Provider>
   );

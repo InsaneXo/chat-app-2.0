@@ -23,7 +23,7 @@ interface messageListType {
 }
 
 const MessageList = () => {
-  const { store, selectedChatDetails, notification, setNotification } = useStore()
+  const { store, selectedChatDetails } = useStore()
   const socket = useSocket()
 
 
@@ -109,8 +109,6 @@ const MessageList = () => {
     hasMore,
   });
 
-
-
   const seenAllMessages = async () => {
     try {
 
@@ -129,8 +127,6 @@ const MessageList = () => {
       }
     }
   }
-
-
 
   const newMessagesListener = useCallback(
     async (data: any) => {

@@ -5,6 +5,8 @@ import friendRequest from "../models/friendRequest";
 import user from "../models/user";
 import chat from "../models/chat";
 import { emitEvent } from "../utils/helper";
+import otherNotification from "../models/otherNotification";
+import message from "../models/message";
 
 const sendFriendRequest = async (req: Request, res: Response) => {
     try {
@@ -12,6 +14,10 @@ const sendFriendRequest = async (req: Request, res: Response) => {
 
         if (!receiverId) {
             return res.status(400).json({ message: "All fields are required" });
+        }
+
+        if (!mongoose.isValidObjectId(receiverId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
         }
 
         const existingRequest = await friendRequest.exists({
@@ -30,7 +36,7 @@ const sendFriendRequest = async (req: Request, res: Response) => {
             sender: req.userId
         })
 
-        const populatedRequest:any = await friendRequestData.populate({
+        const populatedRequest: any = await friendRequestData.populate({
             path: "sender",
             select: "_id name email avatarUrl"
         });
@@ -42,7 +48,7 @@ const sendFriendRequest = async (req: Request, res: Response) => {
             email: populatedRequest.sender.email
         }
 
-        emitEvent(req, "SEND_REQUEST", [receiverId], realTimeData)
+        emitEvent(req, "NOTIFICATION", [receiverId], { realTimeData, type: "sendFriendRequest" })
 
         return res.status(201).json({ message: "Friend Request Sent Successfuly" })
     } catch (error) {
@@ -204,6 +210,10 @@ const friendRequestHandler = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All Fields are required" })
         }
 
+        if (!mongoose.isValidObjectId(requestId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
+        }
+
         if (type !== "accepted" && type !== "rejected") {
             return res.status(400).json({ message: "Invaild Type" })
         }
@@ -225,16 +235,22 @@ const friendRequestHandler = async (req: Request, res: Response) => {
             await friendRequest.deleteOne({ _id: requestId })
         }
         else {
-            const userFind = await user.findById(isReqestIdExist.receiver) 
+            const receiver = await user.findById(isReqestIdExist.receiver)
             await friendRequest.updateOne({ _id: requestId }, { $set: { status: type } })
-           const chatInfo = await chat.create({
+            const chatInfo = await chat.create({
                 participants: [isReqestIdExist.sender, isReqestIdExist.receiver]
             })
 
-            const chatRoomDetails:any = await chatInfo.populate({
-            path: "participants",
-            select: "_id name email avatarUrl, status"
-        })
+            const chatRoomDetails: any = await chatInfo.populate({
+                path: "participants",
+                select: "_id name email avatarUrl status"
+            })
+
+            const alert = await otherNotification.create({
+                senderId: isReqestIdExist.sender,
+                message: `${receiver?.email} accepted you request`,
+                avatar: receiver?.avatarUrl
+            })
 
             const realTimeData = {
                 _id: chatInfo._id,
@@ -244,10 +260,11 @@ const friendRequestHandler = async (req: Request, res: Response) => {
                     email: chatRoomDetails.participants[1].email,
                     avatarUrl: chatRoomDetails.participants[1].avatarUrl,
                     status: chatRoomDetails.participants[1].status
-                }
+                },
+                alert
             }
 
-            emitEvent(req, "REQUEST_HANDLER", [isReqestIdExist.sender],{realTimeData, message: `${userFind?.name} accepted your request — start chatting!`})
+            emitEvent(req, "NOTIFICATION", [isReqestIdExist.sender], { realTimeData, type: "requestAccept" })
         }
 
 
@@ -259,5 +276,60 @@ const friendRequestHandler = async (req: Request, res: Response) => {
     }
 }
 
+const otherNotifications = async (req: Request, res: Response) => {
+    try {
 
-export { sendFriendRequest, friendRequestList, searchUsers, friendRequestHandler }
+        const findNotification = await otherNotification.find({ senderId: req.userId?.toString(), seen: false })
+
+        return res.status(200).json({ users: findNotification })
+    } catch (error) {
+        console.log("Other Notification Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+const checkAllNotifications = async (req: Request, res: Response) => {
+    try {
+        await otherNotification.updateMany({ senderId: req.userId?.toString(), seen: false }, {
+            $set: {
+                seen: true
+            }
+        })
+        return res.status(200).json({
+            message: "All Notification Seen"
+        })
+    } catch (error) {
+        console.log("Check All Notification : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+const removeNotifications = async (req: Request, res: Response) => {
+    try {
+        const { notificationId } = req.body;
+
+        if (!notificationId) {
+            return res.status(400).json({
+                message: "All Field Requried"
+            })
+        }
+
+        if (!mongoose.isValidObjectId(notificationId)) {
+            return res.status(400).json({ message: "Not vaild Object id" })
+        }
+
+        const deleteNotification = await otherNotification.findOneAndDelete({ _id: notificationId })
+
+        if (!deleteNotification) {
+            return res.status(404).json({ message: "Notification not found" })
+        }
+
+
+    } catch (error) {
+        console.log("Remove Notification : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+
+export { sendFriendRequest, friendRequestList, searchUsers, friendRequestHandler, otherNotifications, checkAllNotifications, removeNotifications }
