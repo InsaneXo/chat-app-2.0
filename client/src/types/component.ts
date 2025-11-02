@@ -57,11 +57,14 @@ export interface CustomToastMessageProps {
 }
 
 export interface UserType {
-  _id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  status: string;
+   _id: string;
+    avatar: string;
+    messageCount: any;
+    status: string;
+    senderId:string;
+    name: string;
+    message: string | undefined;
+    day: string;
 }
 
 export interface LatestMessageType {

@@ -15,12 +15,13 @@ import Notification from "../../pages/Notification"
 
 const AppLayout = () => {
     const socket = useSocket()
-    const { store, setNotification, selectedChatDetails, setFriendRequest, setChatList } = useStore()
+    const { store, notification, setNotification, selectedChatDetails, setFriendRequest, setChatList } = useStore()
     const { setToast } = useToast()
 
     const notificationListerner = useCallback((data: any) => {
         switch (data.type) {
             case "message":
+                console.log(data, "DAta")
                 if (data.chatId === selectedChatDetails._id) return
                 unreadChatMessageHandler(data)
                 break;
@@ -51,12 +52,15 @@ const AppLayout = () => {
 
             let updatedUnread: any = prev.unreadChatMessages.map(item => {
                 if (item._id === data.chatId) {
-                    return { ...item, totalUnreadCount: item.totalUnreadCount + 1 };
+                    console.log("Helloo world")
+
+                    return { ...item,  totalUnreadCount: item.totalUnreadCount + 1 };
                 }
                 return item;
             });
 
             if (!exists) {
+                console.log("Helloo")
                 updatedUnread = [
                     ...updatedUnread,
                     { _id: data.chatId, totalUnreadCount: 1 }
@@ -73,6 +77,8 @@ const AppLayout = () => {
     const socketListener = {
         ["NOTIFICATION"]: notificationListerner,
     };
+
+    console.log(notification.unreadChatMessages, "Hello")
 
     UseSocketEvents(socket, socketListener)
     return (

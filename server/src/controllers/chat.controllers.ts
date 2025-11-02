@@ -116,10 +116,12 @@ const sendMessage = async (req: Request, res: Response) => {
             createdAt: saveMessageToDb.createdAt
         }
 
-        await chat.findByIdAndUpdate(saveMessageToDb.chatId, {
+        const updateDoc = await chat.findByIdAndUpdate(saveMessageToDb.chatId, {
             $set: {
                 latestMessage: saveMessageToDb._id
             }
+        }, {
+            new: true
         })
 
 
@@ -128,10 +130,9 @@ const sendMessage = async (req: Request, res: Response) => {
             message: realTimeDataMessageObj,
         })
 
-        if (saveMessageToDb.sender.toString() !== req.userId?.toString()) {
-            emitEvent(req, "NOTIFICATION", [req.userId?.toString()], { chatId: saveMessageToDb.chatId.toString(), type: "message" })
-        }
+        const sentAlert = updateDoc?.participants.filter((item) => item._id.toString() !== req.userId?.toString())
 
+        emitEvent(req, "NOTIFICATION", sentAlert, { chatId: saveMessageToDb.chatId.toString(), type: "message" })
 
         return res.status(200).json({ message: "Message Sent Successfully" })
     } catch (error) {

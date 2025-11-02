@@ -11,27 +11,27 @@ declare module "express-serve-static-core" {
   }
 }
 
-const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   try {
     const authHeader = req.headers["token"] as string | undefined;
 
     if (!authHeader) {
-      res.status(401).json({ message: "Unauthorized access. Token missing." });
-      return;
+     return res.status(401).json({ message: "Unauthorized access. Token missing." });
+      
     }
 
     const decodedToken = decodedJWTToken(authHeader) as JwtPayload | null;
 
     if (!decodedToken) {
-      res.status(401).json({ message: "Session expired. Please log in again." });
-      return;
+     return res.status(401).json({ message: "Session expired. Please log in again." });
+      
     }
 
     const userFind = await user.findOne({ "sessions.loginUser": decodedToken.sessionId });
 
     if (!userFind) {
-      res.status(401).json({ message: "Invalid or expired session. Please log in again." });
-      return;
+     return res.status(401).json({ message: "Invalid or expired session. Please log in again." });
+      
     }
 
     req.email = userFind.email;

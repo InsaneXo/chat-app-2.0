@@ -3,10 +3,8 @@ const NODE_ENV = import.meta.env.VITE_NODE_ENV
 if (NODE_ENV === 'DEV')
     Axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 Axios.defaults.headers.post['Content-Type'] = 'application/json';
-console.log(import.meta.env.VITE_NODE_ENV, import.meta.env.VITE_API_URL)
 Axios.interceptors.request.use(async (request) => {
     const token = localStorage.getItem('token')
-    console.log(token)
     if (token)
         request.headers['token'] = token
     return request;

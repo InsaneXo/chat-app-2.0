@@ -25,8 +25,6 @@ const Router = () => {
                 userId: data.userId
             })
 
-            console.log(data.user.unreadChatMessages, "unreadChatMessages")
-
             setNotification({
                 friendRequest: data.user.friendRequest,
                 unreadChatMessages: data.user.unreadChatMessages,

@@ -26,7 +26,12 @@ const JWTTokenGenreted = (payload: string, time: any = "14d") => {
 }
 
 const decodedJWTToken = (token: string) => {
-    return jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+    } catch (error) {
+        return false
+    }
+    
 }
 
 const generateRandomString = (length: number = 10): string => {

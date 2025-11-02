@@ -68,6 +68,8 @@ const MessageList = () => {
   const loadMoreMessages = async () => {
     if (!selectedChatDetails._id) return;
     try {
+
+
       const { data } = await axios({
         url: `/api/chat/message`,
         method: "GET",
@@ -78,7 +80,9 @@ const MessageList = () => {
         }
       })
 
+
       const newMessages: messageListType[] = data.messages || []
+
 
       if (isInitialLoad) {
         setMessageList(newMessages)
@@ -177,19 +181,26 @@ const MessageList = () => {
     ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener
   };
 
-  UseSocketEvents(socket, eventHandler)
-
   useEffect(() => {
-    if (!selectedChatDetails._id) return
+  if (!selectedChatDetails._id) return;
 
-    setMessageList([])
-    setPage(1)
-    setHasMore(true)
-    setIsInitialLoad(true)
+  setMessageList([]);
+  setPage(1);
+  setHasMore(true);
+  setIsInitialLoad(true);
 
-    seenAllMessages()
-    loadMoreMessages()
-  }, [selectedChatDetails._id])
+  seenAllMessages();
+}, [selectedChatDetails._id]);
+
+// Load messages when page resets to 1
+useEffect(() => {
+  if (isInitialLoad && selectedChatDetails._id) {
+    loadMoreMessages();
+  }
+}, [page, selectedChatDetails._id]);
+
+
+  UseSocketEvents(socket, eventHandler)
 
   return (
     <>
@@ -223,9 +234,9 @@ const MessageList = () => {
           >
             <div ref={chatEndRef} />
 
-            {messageList?.map((item, index) => (
+            {messageList?.map((item,) => (
               <MessageItem
-                key={index}
+                key={item._id}
                 message={item.content}
                 isSender={item.sender === store.userId}
                 isRead={item.seenBy.length > 0 ? true : false}

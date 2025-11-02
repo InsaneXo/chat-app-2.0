@@ -50,6 +50,7 @@ const ChatList = () => {
     }
 
     const onclickHandler: any = (_id: string, name: string, avatar: string) => {
+
         setSelectedChatDetails({ _id, name, avatar })
         setNotification(prev => ({
             ...prev,
@@ -83,13 +84,8 @@ const ChatList = () => {
                 <div className='w-fit p-1 rounded-lg bg-[#F6F5F4] hover:bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer '>Groups</div>
             </div>
             <div ref={containerRef} className='flex-1 w-full overflow-auto'>
-                {chatList.map((item) => {
-                    const count = notification.unreadChatMessages.find((chat) => chat._id === item._id)
-
-                    return (<ChatItem key={item._id} _id={item._id} name={item.user.name} messageCount={count?.totalUnreadCount}
-                        status={item.user.status} onclickHandler={onclickHandler} />)
-
-                })}
+                {chatList.map((item) => <ChatItem key={item._id} data={item} onclickHandler={onclickHandler} />
+               )}
                 {loading && (
                     <div className="flex justify-center py-4">
                         <div className="bg-white rounded-lg px-4 py-2 shadow-md flex items-center space-x-2">
