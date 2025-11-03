@@ -116,7 +116,7 @@ const Friends = () => {
                 </div>
 
                 <div className='flex-1 w-full justify-center overflow-auto'>
-                    {loading || searchLoading ? <Loader name={query ? "Loading Users..." : "Loading Friend Requests..."} /> : (displayList.map((item) => (
+                    {displayList.map((item) => (
                         <CustomUserItem
                             key={item._id}
                             loginId={store.userId}
@@ -124,7 +124,7 @@ const Friends = () => {
                             user={item}
                             handler={requestHandler}
                         />
-                    )))}
+                    ))}
 
                     {
                         !displayList.length && <div className="flex justify-center py-4">

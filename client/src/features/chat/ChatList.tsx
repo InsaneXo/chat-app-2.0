@@ -11,7 +11,7 @@ import { useStore } from '../../context/StoreProvider'
 
 const ChatList = () => {
     const { setToast } = useToast()
-    const { notification, setSelectedChatDetails, setNotification, chatList, setChatList } = useStore()
+    const { setSelectedChatDetails, setNotification, chatList, setChatList } = useStore()
     const [hasMore, setHasMore] = useState<boolean>(false)
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1)
@@ -85,7 +85,7 @@ const ChatList = () => {
             </div>
             <div ref={containerRef} className='flex-1 w-full overflow-auto'>
                 {chatList.map((item) => <ChatItem key={item._id} data={item} onclickHandler={onclickHandler} />
-               )}
+                )}
                 {loading && (
                     <div className="flex justify-center py-4">
                         <div className="bg-white rounded-lg px-4 py-2 shadow-md flex items-center space-x-2">

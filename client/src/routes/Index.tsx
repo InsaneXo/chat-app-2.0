@@ -10,6 +10,7 @@ const Router = () => {
     const { store, setStore, setNotification } = useStore()
     const { setToast } = useToast()
 
+
     const verifySession = async () => {
         try {
             if (!localStorage.getItem("token")) return

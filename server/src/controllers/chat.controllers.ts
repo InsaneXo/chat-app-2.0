@@ -63,7 +63,7 @@ const showChatList = async (req: Request, res: Response) => {
                     "latestMessage._id": 1,
                     "latestMessage.content": 1,
                     "latestMessage.createdAt": 1,
-                    "latestMessage.sender": 1
+                    "latestMessage.sender": 1,
                 }
             },
             { $skip: skip },
@@ -132,7 +132,7 @@ const sendMessage = async (req: Request, res: Response) => {
 
         const sentAlert = updateDoc?.participants.filter((item) => item._id.toString() !== req.userId?.toString())
 
-        emitEvent(req, "NOTIFICATION", sentAlert, { chatId: saveMessageToDb.chatId.toString(), type: "message" })
+        emitEvent(req, "NOTIFICATION", sentAlert, { chatId: saveMessageToDb.chatId.toString(), type: "message", message: realTimeDataMessageObj })
 
         return res.status(200).json({ message: "Message Sent Successfully" })
     } catch (error) {

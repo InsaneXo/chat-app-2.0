@@ -5,20 +5,28 @@ import CustomIcon from './CustomIcon';
 import { useStore } from '../../context/StoreProvider';
 
 interface UserTypes {
-      _id: string;
+    _id: string;
     avatar: string;
     messageCount: any;
     status: string;
-    senderId:string;
+    senderId: string;
     name: string;
     message: string | undefined;
     day: string;
 }
 
+interface latestMessageTypes {
+    _id: string;
+    content: string;
+    createdAt: string;
+    sender: string
+}
+
 
 interface ChatItemDataProp {
-   _id:string,
-   user: UserTypes
+    _id: string,
+    latestMessage: latestMessageTypes
+    user: UserTypes
 }
 
 interface CustomChatItemProps {
@@ -28,10 +36,13 @@ interface CustomChatItemProps {
 }
 
 const CustomChatItem = ({ data, onContextMenuData, onclickHandler }: CustomChatItemProps) => {
+    console.log(data, "Data")
     const [position, setPosition] = useState<CustomContextMenuProps | null>(null);
-    const { store, selectedChatDetails } = useStore()
+    const { store, notification, selectedChatDetails } = useStore()
 
     const handleClose = () => setPosition(null)
+
+    const findUnreadChats = notification.unreadChatMessages.find((item) => item._id === data._id)
 
     const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault()
@@ -56,10 +67,10 @@ const CustomChatItem = ({ data, onContextMenuData, onclickHandler }: CustomChatI
                     </div>
                     <div className='flex justify-between items-center'>
                         <div className='flex gap-1'>
-                            {data.user.senderId === store.userId &&  <CustomIcon name='hugeicons:tick-double-02' className='text-gray-500' />}
-                            <h1 className='font-light text-[13px] text-gray-400'>{data.user.message ? data.user.message : data.user.status}</h1>
+                            {data.latestMessage.sender === store.userId && <CustomIcon name='hugeicons:tick-double-02' className='text-gray-500' />}
+                            <h1 className='font-light text-[13px] text-gray-400'>{data.latestMessage.content ? data.latestMessage.content : data.user.status}</h1>
                         </div>
-                        {data.user.messageCount > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px]'>{data.user.messageCount}</div>}
+                        {findUnreadChats?.totalUnreadCount && findUnreadChats?.totalUnreadCount > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px]'>{findUnreadChats?.totalUnreadCount}</div>}
                     </div>
                 </div>
             </div>
