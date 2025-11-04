@@ -19,6 +19,7 @@ interface latestMessageTypes {
     _id: string;
     content: string;
     createdAt: string;
+    seenBy: string[]
     sender: string
 }
 
@@ -36,7 +37,7 @@ interface CustomChatItemProps {
 }
 
 const CustomChatItem = ({ data, onContextMenuData, onclickHandler }: CustomChatItemProps) => {
-    console.log(data, "Data")
+    console.log(data.latestMessage.seenBy.length > 0, "Data is here")
     const [position, setPosition] = useState<CustomContextMenuProps | null>(null);
     const { store, notification, selectedChatDetails } = useStore()
 
@@ -63,11 +64,15 @@ const CustomChatItem = ({ data, onContextMenuData, onclickHandler }: CustomChatI
                 <div className='flex-1 flex flex-col gap-[2px]'>
                     <div className='flex justify-between items-center'>
                         <h1 className=''>{data.user.name}</h1>
-                        <p className='font-light text-[13px] text-gray-400'>{data.user.day}</p>
+                        <p className='font-light text-[13px] text-gray-400'>{new Date(data.latestMessage.createdAt).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</p>
                     </div>
+
                     <div className='flex justify-between items-center'>
                         <div className='flex gap-1'>
-                            {data.latestMessage.sender === store.userId && <CustomIcon name='hugeicons:tick-double-02' className='text-gray-500' />}
+                            {data.latestMessage.sender === store.userId && <CustomIcon name='hugeicons:tick-double-02' className={data.latestMessage.seenBy.length > 0 ? 'text-blue-500' : 'text-gray-500'} />}
                             <h1 className='font-light text-[13px] text-gray-400'>{data.latestMessage.content ? data.latestMessage.content : data.user.status}</h1>
                         </div>
                         {findUnreadChats?.totalUnreadCount && findUnreadChats?.totalUnreadCount > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px]'>{findUnreadChats?.totalUnreadCount}</div>}

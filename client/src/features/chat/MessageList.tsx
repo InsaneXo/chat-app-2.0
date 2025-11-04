@@ -23,7 +23,7 @@ interface messageListType {
 }
 
 const MessageList = () => {
-  const { store, selectedChatDetails } = useStore()
+  const { store, selectedChatDetails, setChatList } = useStore()
   const socket = useSocket()
 
 
@@ -134,6 +134,18 @@ const MessageList = () => {
 
   const newMessagesListener = useCallback(
     async (data: any) => {
+      setChatList((prev) => {
+        return prev.map((item) => {
+          if (item._id === data.chatId) {
+            return {
+              ...item,
+              latestMessage: data.message
+            };
+          }
+          return item;
+        });
+      });
+
       if (data.chatId !== selectedChatDetails._id) return
       setMessageList((prev) => [data.message, ...prev]);
       if (data.message.sender === store.userId) return
@@ -160,6 +172,18 @@ const MessageList = () => {
       )
     );
 
+    setChatList((prev) => {
+      return prev.map((item) => {
+        if (item._id === data.chatId) {
+          return {
+            ...item,
+            latestMessage: data.message
+          }
+        }
+        return item
+      })
+    })
+
   }, [selectedChatDetails._id])
 
   const seenAllMessagelistener = useCallback((data: any) => {
@@ -182,22 +206,22 @@ const MessageList = () => {
   };
 
   useEffect(() => {
-  if (!selectedChatDetails._id) return;
+    if (!selectedChatDetails._id) return;
 
-  setMessageList([]);
-  setPage(1);
-  setHasMore(true);
-  setIsInitialLoad(true);
+    setMessageList([]);
+    setPage(1);
+    setHasMore(true);
+    setIsInitialLoad(true);
 
-  seenAllMessages();
-}, [selectedChatDetails._id]);
+    seenAllMessages();
+  }, [selectedChatDetails._id]);
 
-// Load messages when page resets to 1
-useEffect(() => {
-  if (isInitialLoad && selectedChatDetails._id) {
-    loadMoreMessages();
-  }
-}, [page, selectedChatDetails._id]);
+  // Load messages when page resets to 1
+  useEffect(() => {
+    if (isInitialLoad && selectedChatDetails._id) {
+      loadMoreMessages();
+    }
+  }, [page, selectedChatDetails._id]);
 
 
   UseSocketEvents(socket, eventHandler)

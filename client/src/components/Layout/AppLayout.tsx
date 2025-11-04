@@ -21,24 +21,12 @@ const AppLayout = () => {
     const socket = useSocket()
     const { toggle: toggle1 } = useAudio(AlertNotification)
     const { toggle: toggle2 } = useAudio(AlertNotification2)
-    const { store, setNotification, selectedChatDetails, setFriendRequest, setChatList } = useStore()
+    const { store, setNotification, selectedChatDetails, setFriendRequest, chatList, setChatList } = useStore()
     const { setToast } = useToast()
 
     const notificationListerner = useCallback((data: any) => {
         switch (data.type) {
             case "message":
-                setChatList(prev => {
-                    return prev.map(item => {
-                        if (item.latestMessage._id === data.message._id) {
-                            return {
-                                ...item,
-                                latestMessage: data.message
-                            };
-                        }
-                        return item;
-                    });
-                });
-
                 if (data.chatId === selectedChatDetails._id) return toggle2()
                 unreadChatMessageHandler(data)
                 toggle1()
@@ -66,6 +54,8 @@ const AppLayout = () => {
 
 
     }, [store.userId, selectedChatDetails._id])
+
+    console.log(chatList, " : chatList")
 
     const unreadChatMessageHandler = (data: any) => {
         setNotification(prev => {
@@ -95,6 +85,8 @@ const AppLayout = () => {
     const socketListener = {
         ["NOTIFICATION"]: notificationListerner,
     };
+
+    console.log()
 
     UseSocketEvents(socket, socketListener)
     return (

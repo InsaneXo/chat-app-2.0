@@ -63,6 +63,7 @@ const showChatList = async (req: Request, res: Response) => {
                     "latestMessage._id": 1,
                     "latestMessage.content": 1,
                     "latestMessage.createdAt": 1,
+                    "latestMessage.seenBy": 1,
                     "latestMessage.sender": 1,
                 }
             },
@@ -235,7 +236,16 @@ const seenMessage = async (req: Request, res: Response) => {
 
         const chatParticipants = updateMessageStatus?.chatId.participants
 
-        emitEvent(req, "SEEN_MESSAGE", chatParticipants, { chatId: updateMessageStatus?.chatId._id, messageId, user: req.userId?.toString() })
+        const realTimeDataMessageObj = {
+            _id: updateMessageStatus._id,
+            sender: updateMessageStatus.sender,
+            content: updateMessageStatus.content,
+            messageType: updateMessageStatus.messageType,
+            seenBy: updateMessageStatus.seenBy,
+            createdAt: updateMessageStatus.createdAt
+        }
+
+        emitEvent(req, "SEEN_MESSAGE", chatParticipants, { chatId: updateMessageStatus?.chatId._id, messageId, user: req.userId?.toString(), message: realTimeDataMessageObj })
 
         return res.status(200).json({
             message: "Message Seen"
