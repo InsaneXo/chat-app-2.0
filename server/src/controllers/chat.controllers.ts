@@ -55,6 +55,7 @@ const showChatList = async (req: Request, res: Response) => {
             {
                 $project: {
                     _id: 1,
+                    participants: 1,
                     "user._id": 1,
                     "user.name": 1,
                     "user.email": 1,
@@ -310,4 +311,23 @@ const seenAllMessages = async (req: Request, res: Response) => {
     }
 }
 
-export { showChatList, sendMessage, showMessageList, seenMessage, seenAllMessages }
+const typingChat = async (req: Request, res: Response) => {
+    try {
+        const { members, chatId, isTyping } = req.body
+
+        console.log(members, chatId, isTyping, "HEllo")
+
+        if (!members || !chatId || !isTyping) {
+            return res.status(400).json({ message: "All Field are requried" })
+        }
+
+        emitEvent(req, "TYPING", [members], { members, chatId, isTyping })
+
+        return res.status(200).json({ message: "User Typing" })
+    } catch (error) {
+        console.log("Seen All Message Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
+    }
+}
+
+export { showChatList, sendMessage, showMessageList, seenMessage, seenAllMessages, typingChat }

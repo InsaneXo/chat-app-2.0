@@ -23,7 +23,10 @@ interface messageListType {
 }
 
 const MessageList = () => {
-  const { store, selectedChatDetails, setChatList } = useStore()
+  const { store, selectedChatDetails, setChatList, isTyping } = useStore()
+  const [isTypingOn, setIsTypingOn] = useState<boolean>(false)
+  const [onlineStatus, setOnlineStatus] = useState<boolean>(false)
+  const typingTimeoutRef = useRef<any>(null);
   const socket = useSocket()
 
 
@@ -32,6 +35,56 @@ const MessageList = () => {
     body: "",
     type: ""
   })
+
+
+
+  const typingHandler = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const value = e.target.value;
+      setContent({ body: value, type: "text" });
+
+      if (!isTypingOn) {
+
+        await axios({
+          url: "/api/chat/typing",
+          method: "POST",
+          data: {
+            members: selectedChatDetails.userId,
+            chatId: selectedChatDetails._id,
+            isTyping: "true"
+          }
+        })
+        setIsTypingOn(true)
+      }
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      console.log(typingTimeoutRef.current)
+
+      typingTimeoutRef.current = setTimeout(async () => {
+
+        await axios({
+          url: "/api/chat/typing",
+          method: "POST",
+          data: {
+            members: selectedChatDetails.userId,
+            chatId: selectedChatDetails._id,
+            isTyping: "false"
+          }
+        })
+        setIsTypingOn(false)
+
+      }, 1000);
+
+    } catch (error: any) {
+      if (error) {
+        setToast({ status: "Error", message: error.response.data.message })
+      }
+    }
+
+  };
 
   const [messageList, setMessageList] = useState<messageListType[]>([])
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -199,15 +252,23 @@ const MessageList = () => {
     );
   }, [selectedChatDetails._id])
 
+  const onlineJoinedListener = useCallback((data: any) => {
+    if (data.chatId !== selectedChatDetails._id) return
+
+    if (data.users.includes(selectedChatDetails.userId)) return setOnlineStatus(true)
+
+  }, [selectedChatDetails._id])
+
   const eventHandler = {
     ["MESSAGE"]: newMessagesListener,
     ["SEEN_MESSAGE"]: markAsReadListener,
-    ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener
+    ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener,
+    ["ONLINE_JOINED"]: onlineJoinedListener
   };
 
   useEffect(() => {
     if (!selectedChatDetails._id) return;
-
+    socket?.emit("ONLINE_JOINED", { userId: store.userId, members: [selectedChatDetails.userId], chatId: selectedChatDetails._id })
     setMessageList([]);
     setPage(1);
     setHasMore(true);
@@ -222,6 +283,8 @@ const MessageList = () => {
       loadMoreMessages();
     }
   }, [page, selectedChatDetails._id]);
+
+  console.log(isTypingOn, " : isTypingOn")
 
 
   UseSocketEvents(socket, eventHandler)
@@ -240,7 +303,18 @@ const MessageList = () => {
                   <CustomIcon name="solar:user-linear" className="h-7 w-7" />
                 )}
               </div>
-              <h1 className="">{selectedChatDetails.name}</h1>
+              <div>
+                <h1 className="">{selectedChatDetails.name}</h1>
+                {isTyping.status === "true" ? <div className='flex items-center gap-0.5'>
+                  <CustomIcon name='eos-icons:typing' className='h-4 w-4 text-green-500' />
+                  <h1 className='font-light text-[13px] text-green-500'>Typing</h1>
+                </div> : <div className='flex items-center'>
+                  {onlineStatus && <>
+                    <CustomIcon name='icon-park-outline:dot' className='text-green-500' />
+                    <h1 className='font-light text-[13px] text-green-500'>Online</h1>
+                  </>}
+                </div>}
+              </div>
             </div>
             <div className="flex items-center gap-1">
               <div className="h-10 w-10 hover:bg-[#EAE8E6] rounded-full flex items-center justify-center cursor-pointer">
@@ -302,7 +376,7 @@ const MessageList = () => {
                 className="flex-1 h-full border-none outline-none px-3"
                 type="text"
                 value={content.body}
-                onChange={(e) => setContent({ body: e.target.value, type: "text" })}
+                onChange={typingHandler}
                 placeholder="Enter a message"
               />
               {content.body && (

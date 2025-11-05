@@ -49,9 +49,9 @@ const ChatList = () => {
         }
     }
 
-    const onclickHandler: any = (_id: string, name: string, avatar: string) => {
+    const onclickHandler: any = (_id: string, participants:string[], name:  string, avatar: string, userId:string,) => {
 
-        setSelectedChatDetails({ _id, name, avatar })
+        setSelectedChatDetails({ _id, name, participants, avatar, userId })
         setNotification(prev => ({
             ...prev,
             unreadChatMessages: prev.unreadChatMessages.filter(item => item._id !== _id)

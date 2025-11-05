@@ -9,6 +9,8 @@ interface StoreType {
 
 interface seletedChatDetailsType {
   _id: string;
+  userId: string;
+  participants : string[]
   avatar: string;
   name: string
 }
@@ -39,6 +41,11 @@ interface FriendRequestListType {
   requestId: string
 }
 
+interface IsTypingType {
+  status: string;
+  chatId: string;
+}
+
 interface StoreContextType {
   store: StoreType;
   setStore: React.Dispatch<React.SetStateAction<StoreType>>;
@@ -50,6 +57,8 @@ interface StoreContextType {
   setFriendRequest: React.Dispatch<React.SetStateAction<FriendRequestListType[]>>
   chatList: ChatListTypes[];
   setChatList: React.Dispatch<React.SetStateAction<ChatListTypes[]>>
+  isTyping: IsTypingType;
+  setIsTyping: React.Dispatch<React.SetStateAction<IsTypingType>>
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -74,6 +83,8 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   });
   const [selectedChatDetails, setSelectedChatDetails] = useState<seletedChatDetailsType>({
     _id: "",
+    participants:[],
+    userId: "",
     avatar: "",
     name: ""
   })
@@ -86,10 +97,14 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
 
   const [friendRequest, setFriendRequest] = useState<FriendRequestListType[]>([])
   const [chatList, setChatList] = useState<ChatListTypes[]>([])
+  const [isTyping, setIsTyping] = useState<IsTypingType>({
+    status: "false",
+    chatId: ""
+  })
 
 
   return (
-    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails, notification, setNotification, friendRequest, setFriendRequest, chatList, setChatList }}>
+    <StoreContext.Provider value={{ store, setStore, selectedChatDetails, setSelectedChatDetails, notification, setNotification, friendRequest, setFriendRequest, chatList, setChatList, isTyping, setIsTyping }}>
       {children}
     </StoreContext.Provider>
   );

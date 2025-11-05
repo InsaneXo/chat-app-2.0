@@ -21,7 +21,7 @@ const UserSchema: Schema<IUser> = new Schema(
       maxlength: 150,
     },
     otp: { type: String },
-    lastSeen: { type: Date, default: Date.now },
+    lastSeen: { type: Date,},
     isOnline: { type: Boolean, default: false },
     sessions: {
       forgetPassword: { type: String },

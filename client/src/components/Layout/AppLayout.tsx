@@ -21,7 +21,7 @@ const AppLayout = () => {
     const socket = useSocket()
     const { toggle: toggle1 } = useAudio(AlertNotification)
     const { toggle: toggle2 } = useAudio(AlertNotification2)
-    const { store, setNotification, selectedChatDetails, setFriendRequest, chatList, setChatList } = useStore()
+    const { store, setNotification, selectedChatDetails, setFriendRequest, isTyping, setChatList, setIsTyping } = useStore()
     const { setToast } = useToast()
 
     const notificationListerner = useCallback((data: any) => {
@@ -55,7 +55,13 @@ const AppLayout = () => {
 
     }, [store.userId, selectedChatDetails._id])
 
-    console.log(chatList, " : chatList")
+    const typingListener = useCallback((data: any) => {
+        setIsTyping({
+            status: data.isTyping,
+            chatId: data.chatId
+        })
+    }, [store.userId, selectedChatDetails._id]);
+
 
     const unreadChatMessageHandler = (data: any) => {
         setNotification(prev => {
@@ -84,9 +90,10 @@ const AppLayout = () => {
 
     const socketListener = {
         ["NOTIFICATION"]: notificationListerner,
+        ["TYPING"]: typingListener
     };
 
-    console.log()
+    console.log(isTyping, "dss")
 
     UseSocketEvents(socket, socketListener)
     return (

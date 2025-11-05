@@ -12,9 +12,10 @@ interface ServerToClientEvents {
 }
 
 interface ClientToServerEvents {
-  SEND_MESSAGE: (data: any) => void;
-  SEEN_MESSAGE: (data:any) => void;
-  SEEN_ALL_MESSAGE:(data:any) => void
+  TYPING: (data: any) => void;
+  SEEN_MESSAGE: (data: any) => void;
+  SEEN_ALL_MESSAGE: (data: any) => void;
+  ONLINE_JOINED: (data: any) => void;
 }
 
 
@@ -37,8 +38,8 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const token = localStorage.getItem('token')
 
-  if(!token) return
-  
+  if (!token) return
+
   const socket = useMemo<AppSocket>(
     () =>
       io(import.meta.env.VITE_API_URL, {
