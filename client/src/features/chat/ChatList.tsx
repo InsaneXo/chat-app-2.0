@@ -1,16 +1,18 @@
 import CustomIcon from '../../components/UI/CustomIcon'
 import { CustomSearchBar } from '../../components/UI/CustomSearchBar'
-import ChatItem from '../../components/UI/CustomChatItem'
+import CustomChatItem from '../../components/UI/CustomChatItem'
 import { useEffect, useState } from 'react'
 import { useToast } from '../../context/ToastMessageProvider'
 import useInfiniteScroll from '../../hooks/UseInfiniteScroll'
 import axios from 'axios'
 import type { ChatListTypes } from '../../types/component'
 import { useStore } from '../../context/StoreProvider'
+import useSearch from '../../hooks/UseSearch'
 
 
 const ChatList = () => {
     const { setToast } = useToast()
+    const { query, setQuery, results } = useSearch("/api/chat/search")
     const { setSelectedChatDetails, setNotification, chatList, setChatList } = useStore()
     const [hasMore, setHasMore] = useState<boolean>(false)
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
@@ -49,7 +51,7 @@ const ChatList = () => {
         }
     }
 
-    const onclickHandler: any = (_id: string, participants:string[], name:  string, avatar: string, userId:string,) => {
+    const onclickHandler: any = (_id: string, participants: string[], name: string, avatar: string, userId: string,) => {
 
         setSelectedChatDetails({ _id, name, participants, avatar, userId })
         setNotification(prev => ({
@@ -60,6 +62,8 @@ const ChatList = () => {
 
 
     const { containerRef, loading } = useInfiniteScroll({ loadMore: fetchChatList, hasMore })
+
+    const displayList = query ? results : chatList
 
 
     useEffect(() => {
@@ -76,7 +80,7 @@ const ChatList = () => {
                     </div>
                 </div>
             </div>
-            <CustomSearchBar placeholder='Search chat' />
+            <CustomSearchBar query={query} setQuery={setQuery} placeholder='Search chats' />
             <div className='my-3 flex gap-2'>
                 <div className='w-fit p-1 rounded-lg bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer'>All</div>
                 <div className='w-fit p-1 rounded-lg bg-[#F6F5F4] hover:bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer '>Unread</div>
@@ -84,7 +88,7 @@ const ChatList = () => {
                 <div className='w-fit p-1 rounded-lg bg-[#F6F5F4] hover:bg-[#D9FDD3] text-[13px] text-gray-600 border-2 border-gray-200 cursor-pointer '>Groups</div>
             </div>
             <div ref={containerRef} className='flex-1 w-full overflow-auto'>
-                {chatList.map((item) => <ChatItem key={item._id} data={item} onclickHandler={onclickHandler} />
+                {displayList && displayList.map((item) => <CustomChatItem key={item._id} data={item} onclickHandler={onclickHandler} />
                 )}
                 {loading && (
                     <div className="flex justify-center py-4">

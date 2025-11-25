@@ -79,4 +79,5 @@ export interface ChatListTypes {
     _id: string;
     user: UserType;
     latestMessage: LatestMessageType;
+    participants:[]
 }

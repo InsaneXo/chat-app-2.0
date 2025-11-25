@@ -8,8 +8,6 @@ const Notification = () => {
             url: "/api/user/notifications",
             method: "GET"
         })
-
-        console.log(data, "Data is")
     }
 
     useEffect(() => {

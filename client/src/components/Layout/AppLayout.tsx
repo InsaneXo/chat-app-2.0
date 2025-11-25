@@ -32,7 +32,6 @@ const AppLayout = () => {
                 toggle1()
                 break;
             case "sendFriendRequest":
-                console.log("SendFriendRequestData : ", data)
                 setNotification(prev => ({
                     ...prev,
                     friendRequest: prev.friendRequest + 1
@@ -93,7 +92,6 @@ const AppLayout = () => {
         ["TYPING"]: typingListener
     };
 
-    console.log(isTyping, "dss")
 
     UseSocketEvents(socket, socketListener)
     return (

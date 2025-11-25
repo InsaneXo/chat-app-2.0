@@ -61,8 +61,6 @@ const MessageList = () => {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      console.log(typingTimeoutRef.current)
-
       typingTimeoutRef.current = setTimeout(async () => {
 
         await axios({
@@ -253,22 +251,22 @@ const MessageList = () => {
   }, [selectedChatDetails._id])
 
   const onlineJoinedListener = useCallback((data: any) => {
-    if (data.chatId !== selectedChatDetails._id) return
-
     if (data.users.includes(selectedChatDetails.userId)) return setOnlineStatus(true)
-
+    setOnlineStatus(false)
   }, [selectedChatDetails._id])
 
   const eventHandler = {
     ["MESSAGE"]: newMessagesListener,
     ["SEEN_MESSAGE"]: markAsReadListener,
     ["SEEN_ALL_MESSAGE"]: seenAllMessagelistener,
-    ["ONLINE_JOINED"]: onlineJoinedListener
+    ["ONLINE_USERS"]: onlineJoinedListener
   };
+
+
 
   useEffect(() => {
     if (!selectedChatDetails._id) return;
-    socket?.emit("ONLINE_JOINED", { userId: store.userId, members: [selectedChatDetails.userId], chatId: selectedChatDetails._id })
+    socket?.emit("CHAT_JOINED", { userId: store.userId, members: selectedChatDetails.participants })
     setMessageList([]);
     setPage(1);
     setHasMore(true);
@@ -284,7 +282,6 @@ const MessageList = () => {
     }
   }, [page, selectedChatDetails._id]);
 
-  console.log(isTypingOn, " : isTypingOn")
 
 
   UseSocketEvents(socket, eventHandler)

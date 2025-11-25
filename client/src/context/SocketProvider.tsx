@@ -15,7 +15,7 @@ interface ClientToServerEvents {
   TYPING: (data: any) => void;
   SEEN_MESSAGE: (data: any) => void;
   SEEN_ALL_MESSAGE: (data: any) => void;
-  ONLINE_JOINED: (data: any) => void;
+  CHAT_JOINED: (data: any) => void;
 }
 
 
