@@ -11,14 +11,11 @@ const socketConnection = (io: any) => {
         userSocketIDs.set(userId.toString(), socket.id);
 
 
-        socket.on("ONLINE_JOINED", ({ userId, members, chatId }: any) => {
-            console.log(userId, members, chatId)
+        socket.on("CHAT_JOINED", ({ userId, members }: any) => {
             onlineUsers.add(userId.toString())
 
-            console.log(Array.from(onlineUsers), "Array.from(onlineUsers)")
-
             const membersSocket = getSockets(members);
-            io.to(membersSocket).emit("ONLINE_JOINED", { users: Array.from(onlineUsers), chatId })
+            io.to(membersSocket).emit("ONLINE_USERS", { users: Array.from(onlineUsers) })
         })
 
         socket.on("disconnect", async () => {
@@ -30,7 +27,8 @@ const socketConnection = (io: any) => {
                         lastSeen: new Date()
                     }
                 })
-                userSocketIDs.delete(userId.toString());
+                onlineUsers.delete(userId.toString());
+                socket.broadcast.emit("ONLINE_USERS", { users: Array.from(onlineUsers) });
             } catch (error) {
                 console.log(error)
             }

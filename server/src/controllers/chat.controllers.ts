@@ -19,7 +19,7 @@ const showChatList = async (req: Request, res: Response) => {
             },
             {
                 $lookup: {
-                    from: "usermodels", // collection name (check actual MongoDB collection)
+                    from: "usermodels",
                     localField: "participants",
                     foreignField: "_id",
                     as: "userDetails"
@@ -81,6 +81,81 @@ const showChatList = async (req: Request, res: Response) => {
     } catch (error) {
         console.log("Show Chat List Controller : ", error)
         res.status(500).json({ message: "Something Went Wrong" })
+    }
+}
+
+const searchChatList = async (req: Request, res: Response) => {
+    try {
+        const { name } = req.query;
+        const userId = new mongoose.Types.ObjectId(req.userId);
+
+
+        const chatList = await chat.aggregate([
+            {
+                $lookup: {
+                    from: "usermodels",
+                    localField: "participants",
+                    foreignField: "_id",
+                    as: "userDetails"
+                }
+            },
+            {
+                $match: {
+                    participants: new mongoose.Types.ObjectId(userId),
+                    ...(name && {
+                        "userDetails.name": { $regex: name, $options: "i" }
+                    })
+                }
+            },
+            {
+                $addFields: {
+                    user: {
+                        $first: {
+                            $filter: {
+                                input: "$userDetails",
+                                as: "user",
+                                cond: { $ne: ["$$user._id", new mongoose.Types.ObjectId(userId)] }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    from: "messagemodels",
+                    localField: "latestMessage",
+                    foreignField: "_id",
+                    as: "latestMessage"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$latestMessage",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    participants: 1,
+                    "user._id": 1,
+                    "user.name": 1,
+                    "user.email": 1,
+                    "user.avatarUrl": 1,
+                    "user.status": 1,
+                    "latestMessage._id": 1,
+                    "latestMessage.content": 1,
+                    "latestMessage.createdAt": 1,
+                    "latestMessage.seenBy": 1,
+                    "latestMessage.sender": 1,
+                }
+            },
+        ]);
+
+        return res.status(200).json({ chats: chatList })
+    } catch (error) {
+        console.log("Search Chat List Controller : ", error)
+        return res.status(500).json({ message: "Something went wrong" })
     }
 }
 
@@ -315,8 +390,6 @@ const typingChat = async (req: Request, res: Response) => {
     try {
         const { members, chatId, isTyping } = req.body
 
-        console.log(members, chatId, isTyping, "HEllo")
-
         if (!members || !chatId || !isTyping) {
             return res.status(400).json({ message: "All Field are requried" })
         }
@@ -330,4 +403,4 @@ const typingChat = async (req: Request, res: Response) => {
     }
 }
 
-export { showChatList, sendMessage, showMessageList, seenMessage, seenAllMessages, typingChat }
+export { showChatList, searchChatList, sendMessage, showMessageList, seenMessage, seenAllMessages, typingChat }
