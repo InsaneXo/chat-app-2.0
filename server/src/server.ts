@@ -39,13 +39,7 @@ app.get("/", (req, res) => {
 app.use('/api', router)
 
 
-io.use(async (socket, next) => {
-    const token = socket.handshake.auth.token
-    if (!token) {
-        return next(new ErrorHandler("Please login to access this route", 401));
-    }
-    await socketMiddleware(socket, next)
-})
+io.use(socketMiddleware)
 
 socketConnection(io)
 

@@ -79,8 +79,6 @@ const CustomChatItem = ({ data, onContextMenuData, onclickHandler }: CustomChatI
                                 <CustomIcon name='eos-icons:typing' className='h-4 w-4 text-green-500' />
                                 <h1 className='font-light text-[13px] text-green-500'>Typing</h1>
                             </div> : <>
-                                {/* {data.latestMessage && data.latestMessage.sender ? data.latestMessage.sender === store.userId && <CustomIcon name='hugeicons:tick-double-02' className={data.latestMessage.seenBy.length > 0 ? 'text-blue-500' : 'text-gray-500'} /> : <h1 className='font-light text-[13px] text-gray-400'>{data.latestMessage.content && data.latestMessage.content ? data.latestMessage.content : data.user.status}</h1>} */}
-
                                 {data.latestMessage && data.latestMessage.content ? <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
                                     {data.latestMessage.sender === store.userId && <CustomIcon name='hugeicons:tick-double-02' className={data.latestMessage.seenBy.length > 0 ? 'text-blue-500' : 'text-gray-500'} />}
                                     <h1 className='font-light text-[13px] text-gray-400'>{data.latestMessage.content}</h1>

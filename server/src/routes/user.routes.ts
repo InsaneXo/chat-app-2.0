@@ -1,5 +1,5 @@
 import express from "express"
-import { friendRequestHandler, friendRequestList, otherNotifications, removeNotifications, searchUsers, sendFriendRequest } from "../controllers/user.contollers"
+import { checkAllNotifications, friendRequestHandler, friendRequestList, otherNotifications, removeNotifications, searchUsers, sendFriendRequest } from "../controllers/user.contollers"
 
 const userRouter = express.Router()
 
@@ -11,5 +11,6 @@ userRouter.get('/search', searchUsers)
 
 userRouter.get('/notifications', otherNotifications)
 userRouter.delete('/notifications', removeNotifications)
+userRouter.put('/notifications', checkAllNotifications)
 
 export default userRouter

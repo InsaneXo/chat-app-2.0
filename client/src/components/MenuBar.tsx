@@ -35,8 +35,8 @@ const MenuBar = () => {
         
         <Link to="/notification" className={getLinkClasses('/notification')}>
           <CustomIcon name='mdi:notifications' />
-          {notification.otherNotification > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px] absolute right-0 top-[-4px] border-2 border-[#F7F5F3]'>
-            {notification.otherNotification}
+          {notification.freshNotification > 0 && <div className='h-4 w-4 bg-[#1DAA61] rounded-full flex justify-center items-center text-white text-[10px] absolute right-0 top-[-4px] border-2 border-[#F7F5F3]'>
+            {notification.freshNotification}
           </div>}
         </Link>
       </div>

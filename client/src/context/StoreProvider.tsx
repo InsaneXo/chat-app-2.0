@@ -10,7 +10,7 @@ interface StoreType {
 interface seletedChatDetailsType {
   _id: string;
   userId: string;
-  participants : string[]
+  participants: string[]
   avatar: string;
   name: string
 }
@@ -28,10 +28,19 @@ interface unreadChatMessagesType {
 //   createdAt: string
 // }
 
+interface NotificationItemTypes {
+  _id: string,
+  senderId: string,
+  message: string,
+  seen: boolean,
+  createdAt: string,
+  updatedAt: string,
+}
 interface notificationType {
   friendRequest: number;
   unreadChatMessages: unreadChatMessagesType[];
-  otherNotification: number
+  otherNotification: NotificationItemTypes[]
+  freshNotification: number
 }
 
 interface FriendRequestListType {
@@ -45,6 +54,8 @@ interface IsTypingType {
   status: string;
   chatId: string;
 }
+
+
 
 interface StoreContextType {
   store: StoreType;
@@ -83,7 +94,7 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   });
   const [selectedChatDetails, setSelectedChatDetails] = useState<seletedChatDetailsType>({
     _id: "",
-    participants:[],
+    participants: [],
     userId: "",
     avatar: "",
     name: ""
@@ -92,7 +103,8 @@ export const StoreProvider = ({ children }: StoreProviderProps) => {
   const [notification, setNotification] = useState<notificationType>({
     friendRequest: 0,
     unreadChatMessages: [],
-    otherNotification: 0
+    otherNotification: [],
+    freshNotification:0
   })
 
   const [friendRequest, setFriendRequest] = useState<FriendRequestListType[]>([])

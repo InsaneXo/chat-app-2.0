@@ -107,7 +107,7 @@ const login = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "All Fields are required" })
         }
 
-        const isUserExist = await user.findOne({ email, isActive: true }).select("+password")
+        const isUserExist = await user.findOne({ email, isActive: true },{password:1})
 
         if (!isUserExist) {
             return res.status(404).json({ message: 'User not found. Please register first.' })

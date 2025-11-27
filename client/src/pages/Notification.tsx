@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import CustomIcon from '../components/UI/CustomIcon'
 import { CustomUserItem } from '../components/UI/CustomUserItem'
 import { useToast } from '../context/ToastMessageProvider'
+import { useStore } from '../context/StoreProvider'
 
 interface NotificationTypes {
     _id: string,
@@ -13,9 +14,24 @@ interface NotificationTypes {
     updatedAt: string,
 }
 
+function convertToHumanReadable(dateString: string) {
+    const date = new Date(dateString);
+
+    return date.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+}
+
+
 const Notification = () => {
-    const [notificationList, setNotificationList] = useState<NotificationTypes[]>([])
     const { setToast } = useToast()
+    const { notification, setNotification } = useStore()
 
     const notifications = async () => {
         try {
@@ -23,7 +39,10 @@ const Notification = () => {
                 url: "/api/user/notifications",
                 method: "GET"
             })
-            setNotificationList(data.notifications)
+            setNotification((prev) => ({
+                ...prev,
+                otherNotification: data.notifications
+            }))
         } catch (error: any) {
             if (error) {
                 setToast({ status: "Error", message: error.response.data.message })
@@ -32,8 +51,63 @@ const Notification = () => {
 
     }
 
+    const hideMessageHandler = async (notificationId: string, hideAll = false) => {
+        try {
+            await axios({
+                url: "/api/user/notifications",
+                method: "DELETE",
+                data: {
+                    notificationId,
+                    hideAll
+                }
+            })
+
+            if (hideAll) {
+                return setNotification((prev) => ({
+                    ...prev,
+                    otherNotification: []
+                }))
+            }
+
+            setNotification((prev) => ({
+                ...prev,
+                otherNotification: prev.otherNotification.filter((notification) => notification._id !== notificationId)
+            }))
+
+        } catch (error: any) {
+            if (error) {
+                if (error) {
+                    setToast({ status: "Error", message: error.response.data.message })
+                }
+            }
+        }
+    }
+
+    const checkAllNotificationSeen = async () => {
+        try {
+            await axios({
+                url: "/api/user/notifications",
+                method: "PUT",
+            })
+
+            setNotification((prev) => ({
+                ...prev,
+                freshNotification: 0
+            }))
+        } catch (error: any) {
+            if (error) {
+                if (error) {
+                    setToast({ status: "Error", message: error.response.data.message })
+                }
+            }
+        }
+    }
+
     useEffect(() => {
         notifications()
+        if (notification.otherNotification.length > 0) {
+            checkAllNotificationSeen()
+        }
     }, [])
     return (
         <div className="flex-1 flex">
@@ -46,16 +120,19 @@ const Notification = () => {
                         </div>
                     </div>
                 </div>
-                <div className="my-5 flex items-center justify-between">
-                    <div className="text-[#29D369]">All Notifications</div>
-                    <div title='Remove All Notification' className="p-2 flex items-center bg-red-400 rounded-md gap-1.5 text-white font-semibold cursor-pointer">
-                        <CustomIcon name="mdi:delete-off-outline" className="h-5 w-5" />
-                    </div>
+                <div className="my-5 flex justify-between">
+                    <div className="text-[#29D369] font-medium">All Notifications</div>
+                    {notification.otherNotification && notification.otherNotification.length > 0 && <div title='Remove All Notification' className="p-2 flex items-center bg-red-400 rounded-md gap-1.5 text-white font-semibold cursor-pointer" onClick={() => hideMessageHandler("", true)}>
+                        <CustomIcon name="mdi:hide" className="h-5 w-5" />
+                        <span>Hide All</span>
+                    </div>}
+
                 </div>
 
                 <div className='flex-1 w-full justify-center overflow-auto'>
-                    {notificationList.map((item) => <NotificationItem key={item._id} data={item} />)}
-
+                    {notification.otherNotification && notification.otherNotification.length > 0 ? notification.otherNotification && notification.otherNotification.map((data) => <NotificationItem key={data._id} data={data} hideMessageHandler={hideMessageHandler} />) : <div className="bg-white rounded-lg px-4 py-2 shadow-md flex items-center space-x-2 mt-5 w-80 mx-auto">
+                        <span className="text-gray-700">There are no new notification here.</span>
+                    </div>}
                 </div>
             </div>
 
@@ -68,7 +145,7 @@ const Notification = () => {
                     />
                     <h1 className="text-3xl font-semibold text-[#29D369]">ConnectWave</h1>
                     <p className="text-lg max-w-md text-gray-500 leading-relaxed">
-                        Connect with new people! View and manage your friend requests to grow your chat circle.
+                        Connect with new people! View and manage your notification here.
                     </p>
                 </div>
             </div>
@@ -77,7 +154,7 @@ const Notification = () => {
     )
 }
 
-const NotificationItem = ({ data }: { data: NotificationTypes }) => {
+const NotificationItem = ({ data, hideMessageHandler }: { data: NotificationTypes, hideMessageHandler: (notificationId: string) => void }) => {
     return <>
         <div
             className={`h-20 w-full hover:bg-[#F6F5F4] rounded-lg px-2 flex items-center gap-2 mb-[2px] relative`}
@@ -86,19 +163,17 @@ const NotificationItem = ({ data }: { data: NotificationTypes }) => {
                 <CustomIcon name="solar:user-linear" className="h-7 w-7" />
             </div>
 
-            <div className='flex-1 h-full flex items-center  bg-red-50'>
-                <div className='w'>
+            <div className='flex-1 h-full flex items-center justify-between'>
+                <div className=''>
                     <h1 className=''>{`${data.message}`}</h1>
-                    <h1 className=''>23-01-2025</h1>
+                    <h1 className='font-light text-[13px] text-gray-400'>{convertToHumanReadable(data.createdAt)}</h1>
                 </div>
-                {/* <div className='flex items-center gap-2'>
-                    <>
-                        <div className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer">
-                            <CustomIcon name="material-symbols-light:chat-outline-rounded" className="h-5 w-5" />
-                            <span>Chats</span>
-                        </div>
-                    </>
-                </div> */}
+                <div className='flex items-center gap-2'>
+                    <div className="p-2 flex items-center bg-[#29D369] rounded-md gap-1.5 text-white font-semibold cursor-pointer" onClick={() => hideMessageHandler(data._id)}>
+                        <CustomIcon name="mdi:hide" className="h-5 w-5" />
+                        <span>Hide</span>
+                    </div>
+                </div>
             </div>
         </div>
     </>

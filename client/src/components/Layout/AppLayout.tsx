@@ -21,8 +21,10 @@ const AppLayout = () => {
     const socket = useSocket()
     const { toggle: toggle1 } = useAudio(AlertNotification)
     const { toggle: toggle2 } = useAudio(AlertNotification2)
-    const { store, setNotification, selectedChatDetails, setFriendRequest, isTyping, setChatList, setIsTyping } = useStore()
+    const { store, setNotification, selectedChatDetails, setFriendRequest, setChatList, setIsTyping } = useStore()
     const { setToast } = useToast()
+
+    let path = window.location.pathname
 
     const notificationListerner = useCallback((data: any) => {
         switch (data.type) {
@@ -42,8 +44,13 @@ const AppLayout = () => {
             case "requestAccept":
                 setNotification(prev => ({
                     ...prev,
-                    otherNotification: prev.otherNotification + 1
+                    otherNotification: [...prev.otherNotification || [], data.realTimeData.alert]
                 }));
+                if (path !== "/notification")
+                    setNotification(prev => ({
+                        ...prev,
+                        freshNotification: prev.freshNotification + 1
+                    }))
                 setChatList((prev) => [...prev, data.realTimeData])
                 toggle1()
                 break;

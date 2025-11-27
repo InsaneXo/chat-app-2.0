@@ -29,7 +29,8 @@ const Router = () => {
             setNotification({
                 friendRequest: data.user.friendRequest,
                 unreadChatMessages: data.user.unreadChatMessages,
-                otherNotification: data.user.notifications
+                otherNotification: [],
+                freshNotification: data.user.notifications
             })
 
         } catch (error: any) {

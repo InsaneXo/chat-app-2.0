@@ -282,7 +282,7 @@ const otherNotifications = async (req: Request, res: Response) => {
         const limit = Number(req.query.limit) || 10
         const skip = (page - 1) * limit
 
-        const findNotification = await otherNotification.find({ senderId: req.userId?.toString(), seen: false }).skip(skip).limit(limit)
+        const findNotification = await otherNotification.find({ senderId: req.userId?.toString() }).skip(skip).limit(limit)
 
         return res.status(200).json({ notifications: findNotification })
     } catch (error) {
@@ -309,23 +309,26 @@ const checkAllNotifications = async (req: Request, res: Response) => {
 
 const removeNotifications = async (req: Request, res: Response) => {
     try {
-        const { notificationId } = req.body;
+        const { notificationId, hideAll = false } = req.body;
 
-        if (!notificationId) {
-            return res.status(400).json({
-                message: "All Field Requried"
-            })
+        if (notificationId) {
+            if (!mongoose.isValidObjectId(notificationId)) {
+                return res.status(400).json({ message: "Not vaild Object id" })
+            }
         }
 
-        if (!mongoose.isValidObjectId(notificationId)) {
-            return res.status(400).json({ message: "Not vaild Object id" })
-        }
+        if (hideAll) {
+            await otherNotification.deleteMany({ senderId: req.userId?.toString() })
+        } else {
+            const deleteNotification = await otherNotification.findOneAndDelete({ _id: notificationId })
 
-        const deleteNotification = await otherNotification.findOneAndDelete({ _id: notificationId })
-
-        if (!deleteNotification) {
-            return res.status(404).json({ message: "Notification not found" })
+            if (!deleteNotification) {
+                return res.status(404).json({ message: "Notification not found" })
+            }
         }
+        return res.status(200).json({ message: "Notification hide Successfully" })
+
+
 
 
     } catch (error) {
